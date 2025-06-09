@@ -1,0 +1,14 @@
+/* components/RouteMap.module.css */
+.mapContainer {
+  height: 70vh;
+  width: 100%;
+  z-index: 10;
+}
+
+.startMarker {
+  filter: hue-rotate(200deg);
+}
+
+.endMarker {
+  filter: hue-rotate(100deg);
+}
