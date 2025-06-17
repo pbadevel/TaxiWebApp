@@ -11,7 +11,7 @@ interface AddressResult {
 interface AddressSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectAddress: (address: string, coords: { lat: number; lng: number }) => void;
+  onSelectAddress: (coords: { lat: number; lng: number }) => void;
   addressType: 'start' | 'end' | "tarif";
   currentAddress: string
 }
@@ -68,7 +68,7 @@ export default function AddressSearchModal({
   
   // Обработчик выбора адреса
   const handleSelect = (result: AddressResult) => {
-    onSelectAddress(result.display_name, {
+    onSelectAddress({
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon)
     });

@@ -142,15 +142,8 @@ export default function CustomMapWrapper() {
     };
 
     // Обработчик выбора адреса из модального окна
-    const handleAddressSelect = (address: string, coords: { lat: number; lng: number }) => {
-        // if (currentAddressType === 'start') {
-        // setStartPoint(coords);
-        // // Если выбрали стартовую точку, переключаем на прибытие
-        // setStep('end');
-        // } else {
-        // setEndPoint(coords);
-        // }
-        
+    const handleAddressSelect = (coords: { lat: number; lng: number }) => {
+
         setIsAddressModalOpen(false);
         
         // Центрируем карту на выбранном адресе
