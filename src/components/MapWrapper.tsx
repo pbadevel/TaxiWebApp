@@ -245,7 +245,7 @@ export default function CustomMapWrapper() {
       </div>
       
       {/* Модальное окно для поиска адреса */}
-      {isAddressModalOpen && (
+      {isAddressModalOpen && step != 'tarif' && (
         <AddressSearchModal
           isOpen={isAddressModalOpen}
           onClose={() => setIsAddressModalOpen(false)}
