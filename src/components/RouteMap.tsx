@@ -1,5 +1,6 @@
 'use client';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { TileLayer, Marker, useMap } from 'react-leaflet';
+import { useState, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
@@ -18,8 +19,9 @@ interface RouteMapProps {
   center: L.LatLngExpression;
   startPoint: { lat: number; lng: number } | null;
   endPoint: { lat: number; lng: number } | null;
-  step: 'start' | 'end';
+  step: 'start' | 'end' | 'tarif ';
   onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
+  onMapMove: (point: { lat: number; lng: number }, address: string) => void;
   onMapLoad: (map: L.Map) => void;
 }
 
@@ -27,57 +29,82 @@ interface RouteMapProps {
 const MapHandler = ({ 
   step, 
   onSetPoint,
-  map
-}: { 
-  step: 'start' | 'end'; 
-  onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
-  map: L.Map;
-}) => {
-  // Обработчик перемещения карты
-  const handleMove = () => {
-    const center = map.getCenter();
-    updateAddress(center.lat, center.lng);
-  };
+  onMapMove
+  }: { 
+    step: 'start' | 'end' | 'tarif '; 
+    onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
+    onMapMove: (point: { lat: number; lng: number }, address: string) => void;
+  }) => {
+    const map = useMap();
+    const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
+    const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Обработчик клика по карте
-  const handleClick = (e: L.LeafletMouseEvent) => {
-    onSetPoint({ lat: e.latlng.lat, lng: e.latlng.lng }, 'Выбранное место');
-  };
 
-  // Функция для получения адреса по координатам
-  const updateAddress = async (lat: number, lng: number) => {
-  try {
-    const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lng}`);
-    const data = await response.json();
+    // update address name
+    const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
+      try {
+        const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lng}`);
+        const data = await response.json();
 
-    if (data && data.display_name) {
-      const address = data.display_name.split(',').slice(0, 4).join(',');
-      onSetPoint({ lat, lng }, address);
-    }
-  } catch (error) {
-    console.error('Ошибка получения адреса:', error);
-  }
-};
+        if (data && data.display_name) {
+          
+          const address = data.display_name.split(',').slice(0, 4).join(',');
+          
+          // Для кликов - устанавливаем точку
+          if (!isClick) {
+            
+            onSetPoint({ lat, lng }, address);
+            onMapMove({ lat, lng }, address);
+            
+          } 
+          }
+      } catch (error) {
+        console.error('Ошибка получения адреса:', error);
+      }
+    };
 
-  useEffect(() => {
+
+
+
+    // Обработчик клика по карте
+    const handleClick = (e: L.LeafletMouseEvent) => {
+      updateAddress(e.latlng.lat, e.latlng.lng, true);
+    };
+    
+    // Обработчик перемещения карты
+    const handleMove = () => {
+      if (moveTimeout.current) {
+        clearTimeout(moveTimeout.current);
+      }
+      
+      moveTimeout.current = setTimeout(() => {
+        const center = map.getCenter();
+        // Проверяем, действительно ли карта переместилась
+        if (!lastPoint || center.distanceTo(lastPoint) > 50) {
+          updateAddress(center.lat, center.lng);
+          setLastPoint(center);
+        }
+      }, 300);
+    };
+
+    // Функция для получения адреса по координатам
+    useEffect(() => {
+    map.on('click', handleClick);
     map.on('moveend', handleMove);
-    if (step === 'start') {
-      map.on('click', handleClick);
-    } else {
-      map.off('click', handleClick);
-    }
 
-    // Инициализация адреса
+    // Первоначальная установка адреса
     const center = map.getCenter();
     updateAddress(center.lat, center.lng);
 
     return () => {
-      map.off('moveend', handleMove);
       map.off('click', handleClick);
+      map.off('moveend', handleMove);
+      if (moveTimeout.current) clearTimeout(moveTimeout.current);
     };
   }, [step]);
 
   return null;
+
 };
 
 const LocationMarker = ({ position, type }: LocationMarkerProps) => {
@@ -99,6 +126,7 @@ export default function RouteMap({
   endPoint,
   step,
   onSetPoint,
+  onMapMove,
   onMapLoad
 }: RouteMapProps) {
   const map = useMap();
@@ -118,7 +146,7 @@ export default function RouteMap({
       <MapHandler 
         step={step} 
         onSetPoint={onSetPoint}
-        map={map}
+        onMapMove={onMapMove}
       />
       
       <LocationMarker position={startPoint} type="start" />
