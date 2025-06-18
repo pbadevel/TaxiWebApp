@@ -1,0 +1,90 @@
+server {
+    listen 80;
+    listen [::]:80;
+    server_name gigabyteschatbots.ru;
+    
+    # Перенаправление всех HTTP-запросов на HTTPS
+    return 301 https://$host$request_uri;
+}
+
+
+server {
+    listen 443 ssl http2;
+    server_name gigabyteschatbots.ru;
+
+    ssl_certificate /etc/letsencrypt/live/gigabyteschatbots.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/gigabyteschatbots.ru/privkey.pem;
+
+    # Перенаправление корня
+    location = / {
+        return 301 https://$host/TalkDrive/;
+    }
+
+    # API обработка
+    location /api/ {
+        proxy_pass http://localhost:3000/api/;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+    }
+
+    location /TalkDrive/api/ {
+        # Убираем префикс /TalkDrive
+        rewrite ^/TalkDrive(/.*)$ $1 break;
+        
+        proxy_pass http://localhost:3000;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+    }
+
+    # Статические файлы (картинки)
+    location ~* \.(png|jpg|jpeg|gif|ico|css|js|woff2)$ {
+        # Пробуем найти файл с префиксом /TalkDrive
+        try_files $uri $uri/ /TalkDrive$uri @nextjs_static;
+        
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+    }
+    
+    location @nextjs_static {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+    }
+
+    # Основное приложение
+    location /TalkDrive/ {
+        # Убираем префикс /TalkDrive
+        rewrite ^/TalkDrive(/.*)$ $1 break;
+        
+        proxy_pass http://localhost:3000;
+        
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_redirect off;
+    }
+
+    # Статика Next.js
+    location /TalkDrive/_next/static {
+        proxy_pass http://localhost:3000/_next/static;
+        proxy_set_header Host $host;
+        expires 365d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Fallback
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
