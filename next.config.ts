@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-    basePath: '/projects',
-    // assetPrefix: '/projects/TalkDrive',
+    basePath: '/TalkDrive',
 
     async headers() {
         
