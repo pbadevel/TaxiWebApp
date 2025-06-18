@@ -7,14 +7,6 @@ const nextConfig: NextConfig = {
     assetPrefix: '/TalkDrive/',
     trailingSlash: true,
     
-    // Для Next.js 13+ с App Router
-    experimental: {
-        appDir: true,
-        // Если используете Turbopack
-        turbopackLoaders: {
-        '.png': 'file-loader',
-        },
-    },
     
     // Для API роутов
     async rewrites() {
