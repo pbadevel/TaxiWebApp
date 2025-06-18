@@ -5,22 +5,23 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
     basePath: '/TalkDrive',
     assetPrefix: '/TalkDrive',
-    async rewrites() {
-        return [
-        {
-            source: '/:path*',
-            destination: '/:path*',
-        },
-        {
-            source: '/TalkDrive',
-            destination: '/',
-        },
-        {
-            source: '/TalkDrive/:path*',
-            destination: '/:path*',
-        }
-        ]
-    },
+    trailingSlash: true, // Важно!
+    // async rewrites() {
+    //     return [
+    //     {
+    //         source: '/:path*',
+    //         destination: '/:path*',
+    //     },
+    //     {
+    //         source: '/TalkDrive',
+    //         destination: '/',
+    //     },
+    //     {
+    //         source: '/TalkDrive/:path*',
+    //         destination: '/:path*',
+    //     }
+    //     ]
+    // },
     async headers() {
         
         return [
