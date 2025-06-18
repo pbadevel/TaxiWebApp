@@ -7,7 +7,7 @@ import styles from '../styles/page.module.css';
 
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
-
+import { getDistanceTariff } from '@/utils/tariffCalculator';
 
 interface Point {
   lat: number;
@@ -149,11 +149,11 @@ export default function CustomMapWrapper() {
     console.log('Заказ такси с тарифом:', tariffId);
     
     // Здесь будет вызов API для расчета стоимости
-    // const list_points = [
-    //   [startPoint?.lng, startPoint?.lat],
-    //   [endPoint?.lng, endPoint?.lat]
-    // ];
-    // get_distance_tariff(4, tariffId, list_points);
+    const list_points = [
+      [startPoint?.lng, startPoint?.lat],
+      [endPoint?.lng, endPoint?.lat]
+    ];
+    get_distance_tariff(4, tariffId, list_points);
     
     // После заказа можно сбросить состояние
     alert('Заказ оформлен!');
