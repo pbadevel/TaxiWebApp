@@ -51,7 +51,7 @@ const GeoLocationButton = ({ onLocationFound }: LocationButtonProps) => {
         setIsLoading(false);
       },
       (err) => {
-        console.error("Ошибка геолокации:", err);
+        console.error("Ошибка геолокации:",   );
         setError("Не удалось определить местоположение");
         setIsLoading(false);
       },
