@@ -11,11 +11,10 @@ const nextConfig: NextConfig = {
     // Для API роутов
     async rewrites() {
         return [
-        {
-            source: '/api/:path*',
-            destination: '/TalkDrive/api/:path*',
-            basePath: false
-        }
+         {
+        source: '/api/:path*',
+        destination: '/api/:path*',
+      },
         ]
     },
     async headers() {
