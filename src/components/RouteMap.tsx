@@ -43,12 +43,12 @@ const MapHandler = ({
     const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const baseApiPath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-    console.log('baseApiPath', baseApiPath)
 
 
 
     // update address name
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
+    console.log('baseApiPath', baseApiPath)
       try {
         const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
         const data = await response.json();
