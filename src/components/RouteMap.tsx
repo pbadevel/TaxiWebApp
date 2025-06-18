@@ -124,9 +124,13 @@ const MapHandler = ({
 const LocationMarker = ({ position, type }: LocationMarkerProps) => {
   if (!position) return null;
 
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+
+
   // Кастомные иконки
   const icon = L.icon({
-    iconUrl: type === 'start' ? `/marker-green.png` : `/marker-red.png`,
+    iconUrl: type === 'start' ? basePath+`/marker-green.png` : basePath+`/marker-red.png`,
     iconSize: [42, 42],
     iconAnchor: [16, 32],
   });
