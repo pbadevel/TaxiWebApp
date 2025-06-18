@@ -42,11 +42,14 @@ const MapHandler = ({
     const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
     const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
+    const baseApiPath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
+
 
     // update address name
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
       try {
-        const response = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lng}`);
+        const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
         const data = await response.json();
 
         if (data && data.display_name) {
@@ -115,10 +118,13 @@ const MapHandler = ({
 
 const LocationMarker = ({ position, type }: LocationMarkerProps) => {
   if (!position) return null;
+
+  const baseImagePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
   
   // Кастомные иконки
   const icon = L.icon({
-    iconUrl: type === 'start' ? '/marker-green.png' : '/marker-red.png',
+    iconUrl: type === 'start' ? `${baseImagePath}/marker-green.png` : `${baseImagePath}/marker-red.png`,
     iconSize: [42, 42],
     iconAnchor: [16, 32],
   });
