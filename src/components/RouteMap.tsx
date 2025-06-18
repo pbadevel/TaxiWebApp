@@ -5,6 +5,9 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import styles from './RouteMap.module.css';
+
+import GeoLocationButton from './AutoLocation';
+
 import L, { LatLng } from 'leaflet';
 import { useEffect } from 'react';
 
@@ -139,6 +142,11 @@ export default function RouteMap({
     onMapLoad(map);
   }, [map, onMapLoad]);
 
+  const handleLocationFound = (position: [number, number]) => {
+    // Можно использовать для установки точки
+    console.log('Location found:', position);
+  };
+
   return (
     <>
       <TileLayer
@@ -154,6 +162,8 @@ export default function RouteMap({
       
       <LocationMarker position={startPoint} type="start" />
       <LocationMarker position={endPoint} type="end" />
+      {/* Добавляем кнопку геолокации */}
+      <GeoLocationButton onLocationFound={handleLocationFound} />
 
     </>
   );

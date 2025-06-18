@@ -307,6 +307,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
         onMapMove={handleMapMove}
         onMapLoad={handleMapLoad}
       />
+      
     </MapContainer>
     
 
