@@ -7,7 +7,7 @@ import styles from '../styles/page.module.css';
 
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
-import RouteMap from './RouteMap';
+// import RouteMap from './RouteMap';
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
 
@@ -29,10 +29,10 @@ const MapContainer = dynamic(
   { ssr: false }
 );
 
-// const RouteMap = dynamic(() => import('../components/RouteMap'), {
-//   ssr: false,
-//   loading: () => <p>Загрузка карты...</p>
-// });
+const RouteMap = dynamic(() => import('../components/RouteMap'), {
+  ssr: false,
+  loading: () => <p>Загрузка карты...</p>
+});
 
 
 
