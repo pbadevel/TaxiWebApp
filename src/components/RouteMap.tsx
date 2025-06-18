@@ -50,7 +50,11 @@ const MapHandler = ({
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
     console.log('baseApiPath', baseApiPath)
       try {
-        const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
+        // const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
+
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+        const response = await fetch(url);
+        
         const data = await response.json();
 
         if (data && data.display_name) {
