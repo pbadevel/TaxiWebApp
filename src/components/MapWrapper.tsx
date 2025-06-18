@@ -183,12 +183,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
       }
   };
 
-  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
-
   
-
- 
   // Сброс точек
   const resetPoints = () => {
       setStartPoint(null);
@@ -259,7 +254,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
           </div>
           
           <img
-            src={step === 'start' ? basePath+'/marker-green.png' : basePath+'/marker-red.png'}
+            src={step === 'start' ? '/marker-green.png' : '/marker-red.png'}
             alt="marker"
             style={{ width: 50, height: 50 }}
           />
