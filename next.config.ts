@@ -3,20 +3,20 @@ import type { NextConfig } from "next";
 
 
 const nextConfig: NextConfig = {
-    basePath: '/TalkDrive',
+    // basePath: '/TalkDrive',
     assetPrefix: '/TalkDrive/',
     trailingSlash: true,
     
     
     // Для API роутов
-    async rewrites() {
-        return [
-         {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-        ]
-    },
+    // async rewrites() {
+    //     return [
+    //      {
+    //     source: '/api/:path*',
+    //     destination: '/api/:path*',
+    //   },
+    //     ]
+    // },
     async headers() {
         
         return [
