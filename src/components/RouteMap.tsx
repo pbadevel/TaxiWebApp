@@ -49,6 +49,7 @@ const MapHandler = ({
         if (data && data.display_name) {
           
           const address = data.display_name.split(',').slice(0, 4).join(',');
+          console.log('Адрес:', address);
           
           // Для кликов - устанавливаем точку
           if (!isClick) {
@@ -68,7 +69,9 @@ const MapHandler = ({
 
     // Обработчик клика по карте
     const handleClick = (e: L.LeafletMouseEvent) => {
-      updateAddress(e.latlng.lat, e.latlng.lng, true);
+      const currentCenter = map.getCenter()
+      console.log(currentCenter.lat, currentCenter.lng)
+      updateAddress(currentCenter.lat, currentCenter.lng, true);
     };
     
     // Обработчик перемещения карты
@@ -84,7 +87,7 @@ const MapHandler = ({
           updateAddress(center.lat, center.lng);
           setLastPoint(center);
         }
-      }, 300);
+      }, 100);
     };
 
     // Функция для получения адреса по координатам
@@ -113,7 +116,7 @@ const LocationMarker = ({ position, type }: LocationMarkerProps) => {
   // Кастомные иконки
   const icon = L.icon({
     iconUrl: type === 'start' ? '/marker-green.png' : '/marker-red.png',
-    iconSize: [32, 32],
+    iconSize: [42, 42],
     iconAnchor: [16, 32],
   });
 

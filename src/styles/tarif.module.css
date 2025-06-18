@@ -1,0 +1,235 @@
+/* Контейнер выбора тарифа */
+.tariffContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  padding: 20px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+/* Кнопка назад */
+.backButton {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  
+}
+
+.backButton:hover {
+  background: #e0e0e0;
+}
+
+/* Адреса поездки */
+.routeAddresses {
+  margin-top: 15px;
+  padding: 0 40px;
+}
+
+.addressPoint {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.addressMarker {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #8A2BE2;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.addressText {
+  font-size: 16px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Сетка тарифов */
+.tariffGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.tariffCard {
+  border: 2px solid #e0e0e0;
+  border-radius: 16px;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tariffCard:hover {
+  border-color: #8A2BE2;
+  transform: translateY(-3px);
+}
+
+.selectedTariff {
+  border-color: #8A2BE2;
+  background-color: #f8f0ff;
+  box-shadow: 0 4px 12px rgba(138, 43, 226, 0.2);
+}
+
+.tariffIcon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.tariffName {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.tariffPrice {
+  font-weight: bold;
+  font-size: 18px;
+  color: #8A2BE2;
+}
+
+.tariffTime {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Способ оплаты */
+.paymentContainer {
+  margin: 20px 0;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #555;
+}
+
+.paymentMethods {
+  display: flex;
+  gap: 10px;
+}
+
+.paymentButton {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.paymentButton:hover {
+  border-color: #8A2BE2;
+}
+
+.activePayment {
+  border-color: #8A2BE2;
+  background-color: #f8f0ff;
+  font-weight: bold;
+}
+
+/* Пожелания */
+.requestsContainer {
+  margin: 20px 0;
+}
+
+.requestsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.requestOption {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.requestOption:hover {
+  border-color: #8A2BE2;
+}
+
+.selectedRequest {
+  border-color: #8A2BE2;
+  background-color: #f8f0ff;
+  font-weight: bold;
+}
+
+/* Кнопка заказа */
+.orderButton {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #8A2BE2, #6A0DAD);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
+}
+
+.orderButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(138, 43, 226, 0.4);
+}
+
+.orderButton:active {
+  transform: translateY(0);
+}
+
+
+
+.centerMarker {
+  transition: all 0.3s ease;
+}
+
+.tariffContainer {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Плавное появление элементов */
+.markerLabel, .tariffCard, .paymentButton, .requestOption {
+  transition: all 0.2s ease;
+}

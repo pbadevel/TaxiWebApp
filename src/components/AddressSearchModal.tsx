@@ -78,7 +78,13 @@ export default function AddressSearchModal({
   
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
+     
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+       <button className={styles.backButton} onClick={onClose}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+       </button>
         <h2 className={styles.modalTitle}>
           {addressType === 'start' ? 'Выберите место посадки' : 'Выберите место прибытия'}
         </h2>

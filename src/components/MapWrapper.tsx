@@ -6,6 +6,7 @@ import styles from '../styles/page.module.css';
 
 
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
+import TariffSelection from './TariffSelection'; // Новый компонент
 
 
 interface Point {
@@ -90,191 +91,227 @@ const cities: City[] = [
 
 
 export default function CustomMapWrapper() {
-    const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
-    const [startPoint, setStartPoint] = useState<Point | null>(null);
-    const [endPoint, setEndPoint] = useState<Point | null>(null);
-    const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
-    const [address, setAddress] = useState<string>('Выберите место');
-    const mapRef = useRef<any>(null);
-    const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-    const [currentAddressType, setCurrentAddressType] = useState<'start' | 'end' | "tarif">('start');
+  const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
+  const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [endPoint, setEndPoint] = useState<Point | null>(null);
+  const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
+  const [address, setAddress] = useState<string>('Выберите место');
+  const mapRef = useRef<any>(null);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [currentAddressType, setCurrentAddressType] = useState<'start' | 'end' | "tarif">('start');
+
+  const [startAddress, setStartAddress] = useState<string>('Выберите место посадки');
+  const [endAddress, setEndAddress] = useState<string>('Выберите место прибытия');
+  const [showTariff, setShowTariff] = useState<boolean>(false);
+
   
 
-    const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // Обработчик смены города
-    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const cityId = e.target.value;
-        const city = cities.find(c => c.id === cityId);
-        if (city) {
-            setSelectedCity(city);
-            console.log('select new city', city.name, city.coords)
-            // Если карта уже загружена, меняем центр
-            if (mapRef.current) {
-                mapRef.current.flyTo(city.coords, 15);
-            }
-        }
-    };
+  // Обработчик смены города
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const cityId = e.target.value;
+      const city = cities.find(c => c.id === cityId);
+      if (city) {
+          setSelectedCity(city);
+          console.log('select new city', city.name, city.coords)
+          // Если карта уже загружена, меняем центр
+          if (mapRef.current) {
+              mapRef.current.flyTo(city.coords, 15);
+          }
+      }
+  };
 
-    // Обработчик выбора точки и завершения 
-    const handleSetPoint = (point: Point, addr: string) => {
-        setAddress(addr);
-        
-        // Устанавливаем точку только при клике
-        if (step === 'start') {
-            setStartPoint(point);
-        } 
-        else if (step === 'end') {
-            setEndPoint(point);
-        } else {
-          console.log('All done for tarif', startPoint, endPoint)
-        }
-    };
+  // Обработчик выбора точки
+  const handleSetPoint = (point: Point, addr: string) => {
+    
+    if (step === 'start') {
+      setStartPoint(point);
+      setStartAddress(addr);
+    } else if (step === 'end') {
+      setEndPoint(point);
+      setEndAddress(addr);
+    } else if (step === 'tarif') {
+      // После выбора точки прибытия показываем тарифы
+      setShowTariff(true);
+    }
+  };
 
-    const handleMapMove = (point: Point, addr: string) => {
-        setAddress(addr);
-    };
+  // Обработчик возврата к карте
+  const handleBackToMap = () => {
+    resetPoints();
+    setShowTariff(false);
+    setStep('start');
+  };
 
-    // Обработчик открытия модального окна
-  const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
-        setCurrentAddressType(type);
-        setIsAddressModalOpen(true);
-    };
-
-    // Обработчик выбора адреса из модального окна
-    const handleAddressSelect = (coords: { lat: number; lng: number }) => {
-
-        setIsAddressModalOpen(false);
-        
-        // Центрируем карту на выбранном адресе
-        if (mapRef.current) {
-        mapRef.current.panTo([coords.lat, coords.lng], 15);
-        }
-    };
-
-    // Обработчик клика по адресу
-    const handleAddressClick = () => {
-        if (step === 'start' && startPoint) {
-            console.log('address clck start')
-
-            setStartPoint(null);
-            setEndPoint(null);
-            setStep('start');
-            setAddress('Выберите место');
-        }
-        else if (step === 'end' && endPoint) {
-            console.log('address clck end')
-            setStartPoint(null);
-            setEndPoint(null);
-            setStep('start');
-            setAddress('Выберите место');
-            alert('Тауриф')
-        }
-    };
-    // Сброс точек
-    const resetPoints = () => {
-        setStartPoint(null);
-        setEndPoint(null);
-        setStep('start');
-        setAddress('Выберите место');
-    };
-
-    // Передача ссылки на карту
-    const handleMapLoad = (mapInstance: any) => {
-        mapRef.current = mapInstance;
-    };
+  // Обработчик заказа такси
+  const handleOrderTaxi = (tariffId: string) => {
+    console.log('Заказ такси с тарифом:', tariffId);
+    
+    // Здесь будет вызов API для расчета стоимости
+    // const list_points = [
+    //   [startPoint?.lng, startPoint?.lat],
+    //   [endPoint?.lng, endPoint?.lat]
+    // ];
+    // get_distance_tariff(4, tariffId, list_points);
+    
+    // После заказа можно сбросить состояние
+    alert('Заказ оформлен!');
+    setShowTariff(false);
+    resetPoints();
+  };
 
 
+  const handleMapMove = (point: Point, addr: string) => {
+      setAddress(addr);
+  };
 
-    return (
-    <>
-      <div className={styles.cityPanel}>
-        <select 
-          value={selectedCity.id} 
-          onChange={handleCityChange}
-          className={styles.citySelect}
-        >
-          {cities.map(city => (
-            <option key={city.id} value={city.id}>
-              {city.name}
-            </option>
-          ))}
-        </select>
-      </div>
+  // Обработчик открытия модального окна
+const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
+      setCurrentAddressType(type);
+      setIsAddressModalOpen(true);
+  };
 
-      <div className={styles.centerMarker}>
-        <div className={styles.markerLabel}>
-          <div className={styles.markerRow}>
-            <div className={styles.markerTitle}>
-              {step === 'start' ? 'Посадка' : 'Прибытие'}
+  // Обработчик выбора адреса из модального окна
+  const handleAddressSelect = (coords: { lat: number; lng: number }) => {
+
+      setIsAddressModalOpen(false);
+      
+      // Центрируем карту на выбранном адресе
+      if (mapRef.current) {
+      mapRef.current.panTo([coords.lat, coords.lng], 15);
+      }
+  };
+
+  
+
+ 
+  // Сброс точек
+  const resetPoints = () => {
+      setStartPoint(null);
+      setEndPoint(null);
+      setStep('start');
+      setAddress('Выберите место');
+  };
+
+  // Передача ссылки на карту
+  const handleMapLoad = (mapInstance: any) => {
+      mapRef.current = mapInstance;
+  };
+
+
+
+  return (
+  <>
+    <div className={styles.cityPanel}>
+      <select 
+        value={selectedCity.id} 
+        onChange={handleCityChange}
+        className={styles.citySelect}
+      >
+        {cities.map(city => (
+          <option key={city.id} value={city.id}>
+            {city.name}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Центральный маркер */}
+    {!showTariff && step !== 'tarif'  && (
+        <div className={styles.centerMarker}>
+          <div className={styles.markerLabel}>
+            <div className={styles.markerRow}>
+              <div className={styles.markerTitle}>
+                {step === 'start' ? 'Посадка' : 'Прибытие'}
+              </div>
+              
+              {/* Кликабельный адрес */}
+              <div 
+                className={styles.markerAddress}
+                onClick={() => handleModalAddressClick(step)}
+              > {address}
+              </div>
+              
             </div>
             
-            {/* Кликабельный адрес */}
-            <div 
-              className={styles.markerAddress}
-              onClick={() => handleModalAddressClick(step)}
-            > {address}
-            </div>
+            {/* Кнопка "Продолжить" */}
+            <button 
+              className={styles.continueButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log('handle click forward arrow', step)
+                if (step === 'start') {
+                  setStep('end');
+                } else if (step === 'end') {
+                  setStep('tarif');
+                }
+              }}
+              
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
           </div>
           
-          {/* Кнопка "Продолжить" */}
-          <button 
-            className={styles.continueButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('handle click forward arrow', step)
-              if (step === 'start') {
-                setStep('end');
-              } else if (step === 'end') {
-                setStep('tarif');
-              }
-            }}
-            
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+          <img 
+            src={step === 'start' ? '/marker-green.png' : '/marker-red.png'}
+            alt="marker"
+            style={{ width: 50, height: 50 }}
+          />
         </div>
-        
-        <img 
-          src={step === 'start' ? '/marker-green.png' : '/marker-red.png'}
-          alt="marker"
-          style={{ width: 30, height: 50 }}
-        />
-      </div>
-      
-      {/* Модальное окно для поиска адреса */}
-      {isAddressModalOpen && step != 'tarif' && (
-        <AddressSearchModal
-          isOpen={isAddressModalOpen}
-          onClose={() => setIsAddressModalOpen(false)}
-          onSelectAddress={handleAddressSelect}
-          addressType={currentAddressType}
-          currentAddress={address}
-        />
-      )}
-    
-  
-      <MapContainer 
-        center={selectedCity.coords} 
-        zoom={13} 
-        style={{ height: '100%', width: '100%' }}
-      >
-        <RouteMap 
-          center={selectedCity.coords}
-          startPoint={startPoint}
-          endPoint={endPoint}
-          step={step}
-          onSetPoint={handleSetPoint} // Для кликов
-          onMapMove={handleMapMove}    // Для перемещений
-          onMapLoad={handleMapLoad}
-        />
-      </MapContainer>
-      
+      )
+    }
 
-      
-    </>
+    {/* Блок выбора тарифа */}
+    {showTariff && (
+      <TariffSelection 
+        startAddress={startAddress}
+        endAddress={endAddress}
+        onBack={handleBackToMap}
+        onOrder={handleOrderTaxi}
+      />
+    )}
+
+
+    {/* Модальное окно для поиска адреса */}
+    {isAddressModalOpen && step != 'tarif' && (
+      <AddressSearchModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSelectAddress={handleAddressSelect}
+        addressType={currentAddressType}
+        currentAddress={address}
+      />
+    )}
+  
+
+    <MapContainer 
+      center={selectedCity.coords} 
+      zoom={13} 
+      style={{ 
+        height: '100vh', 
+        width: '100vw',
+        position: 'fixed',
+        top: 0,
+        left: 0
+      }}
+    >
+      <RouteMap 
+        center={selectedCity.coords}
+        startPoint={startPoint}
+        endPoint={endPoint}
+        step={step}
+        onSetPoint={handleSetPoint}
+        onMapMove={handleMapMove}
+        onMapLoad={handleMapLoad}
+      />
+    </MapContainer>
+    
+
+    
+  </>
   );
 
 }
