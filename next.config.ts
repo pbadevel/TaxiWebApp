@@ -4,24 +4,28 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     basePath: '/TalkDrive',
-    assetPrefix: '/TalkDrive',
-    trailingSlash: true, // Важно!
-    // async rewrites() {
-    //     return [
-    //     {
-    //         source: '/:path*',
-    //         destination: '/:path*',
-    //     },
-    //     {
-    //         source: '/TalkDrive',
-    //         destination: '/',
-    //     },
-    //     {
-    //         source: '/TalkDrive/:path*',
-    //         destination: '/:path*',
-    //     }
-    //     ]
-    // },
+    assetPrefix: '/TalkDrive/',
+    trailingSlash: true,
+    
+    // Для Next.js 13+ с App Router
+    experimental: {
+        appDir: true,
+        // Если используете Turbopack
+        turbopackLoaders: {
+        '.png': 'file-loader',
+        },
+    },
+    
+    // Для API роутов
+    async rewrites() {
+        return [
+        {
+            source: '/api/:path*',
+            destination: '/TalkDrive/api/:path*',
+            basePath: false
+        }
+        ]
+    },
     async headers() {
         
         return [
