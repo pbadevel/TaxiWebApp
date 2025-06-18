@@ -43,6 +43,7 @@ const MapHandler = ({
     const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const baseApiPath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+    console.log('baseApiPath', baseApiPath)
 
 
 
