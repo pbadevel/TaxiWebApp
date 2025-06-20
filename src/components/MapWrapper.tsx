@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
@@ -10,8 +10,15 @@ import TariffSelection from './TariffSelection'; // Новый компонен�
 // import RouteMap from './RouteMap';
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
+import { calculateRouteAndPrice } from '@/utils/taxiApi';
 
-
+interface Tariff {
+  id: string;
+  name: string;
+  price: number;
+  time: string;
+  icon: string;
+}
 
 interface Point {
   lat: number;
@@ -96,21 +103,105 @@ const cities: City[] = [
 
 export default function CustomMapWrapper() {
   const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
+  
+  const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
-  const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
-  const [address, setAddress] = useState<string>('Выберите место');
-  const mapRef = useRef<any>(null);
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [currentAddressType, setCurrentAddressType] = useState<'start' | 'end' | "tarif">('start');
-
+  
   const [startAddress, setStartAddress] = useState<string>('Выберите место посадки');
   const [endAddress, setEndAddress] = useState<string>('Выберите место прибытия');
   const [showTariff, setShowTariff] = useState<boolean>(false);
-
   
+  const [address, setAddress] = useState<string>('Выберите место');
+
+  const mapRef = useRef<any>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [currentAddressType, setCurrentAddressType] = useState<'start' | 'end' | "tarif">('start');
+
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculatedTariffs, setCalculatedTariffs] = useState<Tariff[]>([]);
+  const [routeNodes, setRouteNodes] = useState<any[]>([]); 
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+
+
+  useEffect(() => {
+    if (step === 'tarif' && startPoint && endPoint) {
+      calculatePrices();
+    }
+  }, [step]);
+
+  const calculatePrices = async () => {
+    if (!startPoint || !endPoint) return;
+    
+    setIsCalculating(true);
+    setRouteNodes([]); // Сбрасываем предыдущий маршрут
+    
+    const points: [number, number][] = [
+      [startPoint.lng, startPoint.lat],
+      [endPoint.lng, endPoint.lat]
+    ];
+
+    try {
+      // Делаем ОДИН запрос для тарифа ID=1
+      const response = await getDistanceTariff(4, 1, points);
+      
+      // Извлекаем данные из ответа
+      const { min_price, pre_price, fix_price, execution_time, nodes } = response;
+      
+      // Сохраняем точки маршрута
+      if (nodes && nodes.length > 0) {
+        setRouteNodes(nodes);
+      }
+      
+      // Формируем тарифы на основе полученных цен
+      const tariffs = [
+        {
+          id: 'econom',
+          name: 'ЭКОНОМ',
+          icon: '🚕',
+          price: parseInt(min_price) || 0,
+          time: execution_time 
+            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
+            : '5-10 мин',
+          distance: response.distance || '0 км'
+        },
+        {
+          id: 'comfort',
+          name: 'КОМФОРТ',
+          icon: '🚙',
+          price: parseInt(pre_price) || 0,
+          time: execution_time 
+            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
+            : '5-10 мин',
+          distance: response.distance || '0 км'
+        },
+        {
+          id: 'comfort_plus',
+          name: 'КОМФОРТ+',
+          icon: '🚘',
+          price: parseInt(fix_price) || 0,
+          time: execution_time 
+            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
+            : '5-10 мин',
+          distance: response.distance || '0 км'
+        }
+      ];
+
+      setCalculatedTariffs(tariffs);
+      setShowTariff(true);
+    } catch (error) {
+      console.error('Failed to calculate tariffs:', error);
+      setShowTariff(false)
+      alert('Ошибка расчета стоимости. Попробуйте снова.');
+      setStep('end');
+    } finally {
+      setIsCalculating(false);
+    }
+  };
 
   // Обработчик смены города
   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -118,7 +209,7 @@ export default function CustomMapWrapper() {
       const city = cities.find(c => c.id === cityId);
       if (city) {
           setSelectedCity(city);
-          console.log('select new city', city.name, city.coords)
+          // console.log('select new city', city.name, city.coords)
           // Если карта уже загружена, меняем центр
           if (mapRef.current) {
               mapRef.current.flyTo(city.coords, 15);
@@ -148,23 +239,6 @@ export default function CustomMapWrapper() {
     setStep('start');
   };
 
-  // Обработчик заказа такси
-  const handleOrderTaxi = (tariffId: string) => {
-    console.log('Заказ такси с тарифом:', tariffId);
-    
-    // Здесь будет вызов API для расчета стоимости
-    const list_points = [
-      [startPoint?.lng, startPoint?.lat],
-      [endPoint?.lng, endPoint?.lat]
-    ];
-    get_distance_tariff(4, tariffId, list_points);
-    
-    // После заказа можно сбросить состояние
-    alert('Заказ оформлен!');
-    setShowTariff(false);
-    resetPoints();
-  };
-
 
   const handleMapMove = (point: Point, addr: string) => {
       setAddress(addr);
@@ -190,16 +264,28 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
   
   // Сброс точек
   const resetPoints = () => {
-      setStartPoint(null);
-      setEndPoint(null);
-      setStep('start');
-      setAddress('Выберите место');
+    setStartPoint(null);
+    setEndPoint(null);
+    setStep('start');
+    setAddress('Выберите место');
+    setRouteNodes([]); // Очищаем точки маршрута
   };
 
   // Передача ссылки на карту
   const handleMapLoad = (mapInstance: any) => {
       mapRef.current = mapInstance;
   };
+
+
+  const handleOrderTaxi = (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[]) => {
+    console.log('Заказ такси с тарифом:', tariffId, paymentMethod, specialRequests);
+    
+    // После заказа можно сбросить состояние
+    alert('Заказ оформлен!');
+    setShowTariff(false);
+    resetPoints();
+  };
+
 
 
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
@@ -247,7 +333,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
               className={styles.continueButton}
               onClick={(e) => {
                 e.stopPropagation();
-                console.log('handle click forward arrow', step)
+
                 if (step === 'start') {
                   setStep('end');
                 } else if (step === 'end') {
@@ -271,15 +357,24 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
       )
     }
 
-    {/* Блок выбора тарифа */}
-    {showTariff && (
-      <TariffSelection 
-        startAddress={startAddress}
-        endAddress={endAddress}
-        onBack={handleBackToMap}
-        onOrder={handleOrderTaxi}
-      />
-    )}
+    {/* Индикатор загрузки */}
+    {isCalculating && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Расчет стоимости...</p>
+        </div>
+      )}
+
+     {/* Блок выбора тарифа */}
+      {showTariff && (
+        <TariffSelection 
+          startAddress={startAddress}
+          endAddress={endAddress}
+          onBack={handleBackToMap}
+          onOrder={handleOrderTaxi}
+          tariffs={calculatedTariffs} // Передаем рассчитанные тарифы
+        />
+      )}
 
 
     {/* Модальное окно для поиска адреса */}
@@ -293,30 +388,31 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
       />
     )}
   
-
+  <div ref={mapContainerRef} className={styles.mapOffset}>
     <MapContainer 
-      center={selectedCity.coords} 
-      zoom={13} 
-      style={{ 
-        height: '100vh', 
-        width: '100vw',
-        position: 'fixed',
-        top: 0,
-        left: 0
-      }}
-    >
-      <RouteMap 
-        center={selectedCity.coords}
-        startPoint={startPoint}
-        endPoint={endPoint}
-        step={step}
-        onSetPoint={handleSetPoint}
-        onMapMove={handleMapMove}
-        onMapLoad={handleMapLoad}
-      />
-      
-    </MapContainer>
+        center={selectedCity.coords} 
+        zoom={13} 
+        style={{ 
+          height: '100vh', 
+          width: '100vw',
+          position: 'fixed',
+          top: 0,
+          left: 0
+        }}
+      >
+        <RouteMap 
+          center={selectedCity.coords}
+          startPoint={startPoint}
+          endPoint={endPoint}
+          step={step}
+          onSetPoint={handleSetPoint}
+          onMapMove={handleMapMove}
+          onMapLoad={handleMapLoad}
+          routeNodes={routeNodes} // Передаем точки маршрута
+        />
+      </MapContainer>
     
+  </div>
 
     
   </>

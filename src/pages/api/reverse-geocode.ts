@@ -5,7 +5,6 @@ export default async function getAddressByCoords(
   res: NextApiResponse
 ) {
   const { lat, lon } = req.query;
-  console.log(req.url)
 
   if (typeof lat !== 'string' || typeof lon !== 'string') {
     res.status(400).json({ error: 'Invalid query parameters' });

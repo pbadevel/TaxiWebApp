@@ -1,5 +1,5 @@
 'use client';
-import { TileLayer, Marker, useMap } from 'react-leaflet';
+import { TileLayer, Marker, useMap, Polyline } from 'react-leaflet';
 import { useState, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
@@ -8,7 +8,7 @@ import styles from './RouteMap.module.css';
 
 import GeoLocationButton from './AutoLocation';
 
-import L, { LatLng } from 'leaflet';
+import L, { PointTuple, LatLngExpression} from 'leaflet';
 import { useEffect } from 'react';
 
 
@@ -18,15 +18,17 @@ interface LocationMarkerProps {
   type: 'start' | 'end';
 }
 
-interface RouteMapProps {
-  center: L.LatLngExpression;
-  startPoint: { lat: number; lng: number } | null;
-  endPoint: { lat: number; lng: number } | null;
-  step: 'start' | 'end' | 'tarif ';
-  onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
-  onMapMove: (point: { lat: number; lng: number }, address: string) => void;
-  onMapLoad: (map: L.Map) => void;
+// Новый тип для точки маршрута
+interface RouteNode {
+  id: string;
+  lon: string;
+  lat: string;
+  s: string;
+  zid: string;
 }
+
+
+
 
 // Компонент для обработки событий карты
 const MapHandler = ({ 
@@ -34,7 +36,7 @@ const MapHandler = ({
   onSetPoint,
   onMapMove
   }: { 
-    step: 'start' | 'end' | 'tarif '; 
+    step: 'start' | 'end' | 'tarif'; 
     onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
     onMapMove: (point: { lat: number; lng: number }, address: string) => void;
   }) => {
@@ -48,7 +50,7 @@ const MapHandler = ({
 
     // update address name
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
-    console.log('baseApiPath', baseApiPath)
+
       try {
         // const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
 
@@ -60,7 +62,7 @@ const MapHandler = ({
         if (data && data.display_name) {
           
           const address = data.display_name.split(',').slice(0, 4).join(',');
-          console.log('Адрес:', address);
+          
           
           // Для кликов - устанавливаем точку
           if (!isClick) {
@@ -81,7 +83,6 @@ const MapHandler = ({
     // Обработчик клика по карте
     const handleClick = (e: L.LeafletMouseEvent) => {
       const currentCenter = map.getCenter()
-      console.log(currentCenter.lat, currentCenter.lng)
       updateAddress(currentCenter.lat, currentCenter.lng, true);
     };
     
@@ -138,6 +139,102 @@ const LocationMarker = ({ position, type }: LocationMarkerProps) => {
   return <Marker position={position} icon={icon} />;
 };
 
+// Компонент для отображения маршрута
+const RoutePolyline = ({ nodes }: { nodes: RouteNode[] }) => {
+  const map = useMap();
+  const [mapInitialized, setMapInitialized] = useState(false);
+  
+  // Преобразуем узлы в массив координат для Polyline с валидацией
+  const positions: LatLngExpression[] = nodes
+    .map(node => {
+      const lat = parseFloat(node.lat);
+      const lng = parseFloat(node.lon);
+      return { lat, lng };
+    })
+    .filter(point => 
+      !isNaN(point.lat) && 
+      !isNaN(point.lng) &&
+      point.lat >= -90 && 
+      point.lat <= 90 &&
+      point.lng >= -180 && 
+      point.lng <= 180
+    )
+    .map(point => [point.lat, point.lng]);
+
+  // Центрируем карту по маршруту с учетом блока тарифов
+  useEffect(() => {
+    if (positions.length > 0 && map) {
+      // 1. Рассчитываем границы маршрута
+      const bounds = L.latLngBounds(positions);
+      
+      // 2. Получаем контейнер карты для расчета высоты
+      const mapContainer = map.getContainer();
+      if (!mapContainer) return;
+      
+      const offsetCenter = [
+        [bounds.getNorthWest().lat, bounds.getNorthWest().lng - window.innerWidth/2 - 100],
+        [bounds.getSouthEast().lat, bounds.getNorthWest().lng]
+      ];
+     
+      map.flyToBounds(bounds, {
+        paddingTopLeft: offsetCenter[0] as PointTuple,
+        paddingBottomRight: offsetCenter[1] as PointTuple
+      })
+      
+      setMapInitialized(true);
+    }
+  }, [positions, map]);
+
+  // Обновление при изменении размера окна
+  useEffect(() => {
+    const handleResize = () => {
+      if (positions.length > 0 && mapInitialized) {
+        const bounds = L.latLngBounds(positions);
+        const mapContainer = map.getContainer();
+        
+        if (!mapContainer) return;
+        
+        const offsetCenter = [
+        [bounds.getNorthWest().lat, bounds.getNorthWest().lng - 200],
+        [bounds.getSouthEast().lat, bounds.getNorthWest().lng]
+      ];
+     
+      map.flyToBounds(bounds, {
+        paddingTopLeft: offsetCenter[0] as PointTuple,
+        paddingBottomRight: offsetCenter[1] as PointTuple
+      })
+      
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [positions, map, mapInitialized]);
+
+  // Не рендерим полилинию, если нет валидных точек
+  if (positions.length === 0) return null;
+
+  return <Polyline 
+    positions={positions} 
+    color="#3b82f6" 
+    weight={6}
+    opacity={0.8}
+  />;
+};
+
+interface RouteMapProps {
+  center: L.LatLngExpression;
+  startPoint: { lat: number; lng: number } | null;
+  endPoint: { lat: number; lng: number } | null;
+  step: 'start' | 'end' | 'tarif';
+  onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
+  onMapMove: (point: { lat: number; lng: number }, address: string) => void;
+  onMapLoad: (map: L.Map) => void;
+  routeNodes?: RouteNode[]; // Добавим пропс для точек маршрута
+}
+
+
+// Главный компонент
 export default function RouteMap({ 
   center, 
   startPoint, 
@@ -145,7 +242,8 @@ export default function RouteMap({
   step,
   onSetPoint,
   onMapMove,
-  onMapLoad
+  onMapLoad,
+  routeNodes = []
 }: RouteMapProps) {
   const map = useMap();
   
@@ -174,9 +272,12 @@ export default function RouteMap({
       
       <LocationMarker position={startPoint} type="start" />
       <LocationMarker position={endPoint} type="end" />
+
       {/* Добавляем кнопку геолокации */}
       <GeoLocationButton onLocationFound={handleLocationFound} />
 
+      {/* Отображаем маршрут, если есть точки */}
+      {routeNodes.length > 0 && <RoutePolyline nodes={routeNodes} />}
     </>
   );
 } 

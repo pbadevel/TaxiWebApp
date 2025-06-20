@@ -9,31 +9,30 @@ interface Tariff {
   price: number;
   time: string;
   icon: string;
+  distance?: string; // Добавляем опциональное поле расстояния
+
 }
+
 
 interface TariffSelectionProps {
   startAddress: string;
   endAddress: string;
   onBack: () => void;
-  onOrder: (tariffId: string) => void;
+  onOrder: (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[]) => void;
+  tariffs: Tariff[]; // Принимаем рассчитанные тарифы
 }
 
 export default function TariffSelection({ 
-  startAddress, 
+ startAddress, 
   endAddress, 
   onBack,
-  onOrder
+  onOrder,
+  tariffs // Используем переданные тарифы вместо заглушек
 }: TariffSelectionProps) {
   const [selectedTariff, setSelectedTariff] = useState<string>('econom');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
-
-  // Заглушка тарифов (в реальном приложении будем получать через API)
-  const tariffs: Tariff[] = [
-    { id: 'econom', name: 'ЭКОНОМ', price: 235, time: '5-7 мин', icon: '🚕' },
-    { id: 'comfort', name: 'КОМФОРТ', price: 335, time: '3-5 мин', icon: '🚙' },
-    { id: 'comfort_plus', name: 'КОМФОРТ+', price: 435, time: '2-4 мин', icon: '🚘' }
-  ];
+  
 
   const specialOptions = [
     { id: 'child_seat', name: 'Детское кресло', price: 50 },
@@ -50,24 +49,8 @@ export default function TariffSelection({
   };
 
   const handleOrder = () => {
-    // В реальном приложении будем отправлять данные на сервер
-    let total_price = tariffs.find(t => t.id === selectedTariff)?.price || 0
-
-    specialOptions.map((j) => {
-      total_price += j.price;  
-    } );  
-    
-    const orderData = {
-      startAddress,
-      endAddress,
-      tariff: selectedTariff,
-      paymentMethod,
-      specialRequests,
-      totalPrice:  total_price
-    };
-    
-    console.log('Order data:', orderData);
-    onOrder(selectedTariff);
+    // console.log("handle order!", selectedTariff, paymentMethod, specialRequests)
+    onOrder(selectedTariff, paymentMethod, specialRequests);
   };
 
   return (
@@ -100,7 +83,7 @@ export default function TariffSelection({
     </div>
 
       {/* Выбор тарифа */}
-      <div className={styles.tariffGrid}>
+       <div className={styles.tariffGrid}>
         {tariffs.map(tariff => (
           <div 
             key={tariff.id}
@@ -111,6 +94,9 @@ export default function TariffSelection({
             <div className={styles.tariffName}>{tariff.name}</div>
             <div className={styles.tariffPrice}>{tariff.price}₽</div>
             <div className={styles.tariffTime}>{tariff.time}</div>
+            {tariff.distance && (
+              <div className={styles.tariffDistance}>{tariff.distance}</div>
+            )}
           </div>
         ))}
       </div>
