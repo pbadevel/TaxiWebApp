@@ -3,9 +3,6 @@ import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
 
-import { useTelegramWebApp } from '@/utils/telegramUtils';
-
-
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
 // import RouteMap from './RouteMap';
@@ -130,8 +127,16 @@ export default function CustomMapWrapper() {
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const webApp = useTelegramWebApp();
 
+  const [tg, setTg] = useState<any>(null);
+
+  useEffect(() => {
+    const telegram = window.Telegram?.WebApp;
+    if (telegram) {
+      telegram.ready();
+      setTg(telegram);
+    }
+  }, []);
 
 
   useEffect(() => {
@@ -299,11 +304,12 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
 
     
     // Если в Telegram - отправляем через WebApp API
-    if (webApp || window.Telegram) {
+    console.log(tg)
+    if (tg) {
       try {
-        webApp.sendData(JSON.stringify(orderData));
-        webApp.showAlert('Заказ успешно оформлен!', () => {
-          webApp.close();
+        tg.sendData(JSON.stringify(orderData));
+        tg.showAlert('Заказ успешно оформлен!', () => {
+          tg.close();
         });
       } catch (error) {
         console.error('Ошибка отправки данных:', error);

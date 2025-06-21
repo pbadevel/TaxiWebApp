@@ -1,35 +1,23 @@
-import {useState, useEffect } from "react";
+import { useEffect, useState } from 'react';
 
-
-// Утилита для инициализации Telegram WebApp
-export const initTelegramWebApp = () => {
-  // Проверяем, что находимся в браузере
-  if (typeof window === 'undefined') return null;
-  
-  // Проверяем наличие Telegram WebApp API
-  if (window.Telegram && window.Telegram.WebApp) {
-    const webApp = window.Telegram.WebApp;
-    
-    // Расширяем приложение на весь экран
-    webApp.expand();
-    
-    // Устанавливаем цвет фона
-    webApp.setBackgroundColor('#ffffff');
-    
-    return webApp;
+declare global {
+  interface Window {
+    Telegram: {
+      WebApp: any;
+    };
   }
-  
-  return null;
-};
+}
 
-// Хук для использования Telegram WebApp
-export const useTelegramWebApp = () => {
-  const [webApp, setWebApp] = useState<any>(null);
+export const useTelegram = () => {
+  const [tg, setTg] = useState<any>(null);
 
   useEffect(() => {
-    const tgWebApp = initTelegramWebApp();
-    setWebApp(tgWebApp);
+    const telegram = window.Telegram?.WebApp;
+    if (telegram) {
+      telegram.ready();
+      setTg(telegram);
+    }
   }, []);
 
-  return webApp;
+  return { tg };
 };
