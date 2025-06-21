@@ -26,7 +26,7 @@ interface TariffSelectionProps {
     tariffId: number, // ID тарифа - число
     paymentMethod: "cash" | "card", 
     specialRequests: string[], // ID опций - строки
-    finalPrice: number
+    finalPrice: string
   ) => void;
   tariffs: Tariff[];
 }
