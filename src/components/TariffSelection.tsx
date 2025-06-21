@@ -41,6 +41,7 @@ export default function TariffSelection({
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
 
+  console.log(tariffs[0]?.id)
   // Список дополнительных опций
   const specialOptions: SpecialOption[] = [
     { id: 'child_seat', name: 'Детское кресло', price: 50 },
