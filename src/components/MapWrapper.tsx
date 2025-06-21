@@ -299,7 +299,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
 
     
     // Если в Telegram - отправляем через WebApp API
-    if (webApp) {
+    if (webApp || window.Telegram) {
       try {
         webApp.sendData(JSON.stringify(orderData));
         webApp.showAlert('Заказ успешно оформлен!', () => {
