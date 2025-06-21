@@ -3,6 +3,9 @@ import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
 
+import { useTelegramWebApp } from '@/utils/telegramUtils';
+
+
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
 // import RouteMap from './RouteMap';
@@ -126,6 +129,8 @@ export default function CustomMapWrapper() {
   const [routeNodes, setRouteNodes] = useState<any[]>([]); 
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const webApp = useTelegramWebApp();
 
 
 
@@ -281,25 +286,40 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
   const handleOrderTaxi = (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: number) => {
     console.log('Заказ такси с тарифом:', tariffId, paymentMethod, specialRequests);
     
-    const DataToSend = {
-      startPoint: [startPoint?.lng, startPoint?.lat],
-      endPoint: [endPoint?.lng, endPoint?.lat],
-
-      startAddress: startAddress,
-      endAddress: endAddress,
-
+    const orderData = JSON.stringify({
+      startPoint: startPoint ? [startPoint.lng, startPoint.lat] : null,
+      endPoint: endPoint ? [endPoint.lng, endPoint.lat] : null,
+      startAddress,
+      endAddress,
       options: specialRequests,
+      tariffId,
+      paymentMethod,
+      finalPrice
+    });
 
-      tariffId: tariffId,
-
-      paymentMethod: paymentMethod,
-
-      finnalPrice: finalPrice
-
-
-    }
     
-    console.log(DataToSend)
+    // Если в Telegram - отправляем через WebApp API
+    if (webApp) {
+      try {
+        webApp.sendData(JSON.stringify(orderData));
+        webApp.showAlert('Заказ успешно оформлен!', () => {
+          webApp.close();
+        });
+      } catch (error) {
+        console.error('Ошибка отправки данных:', error);
+        alert('Ошибка оформления заказа');
+      }
+    } else {
+      // Режим отладки вне Telegram
+      console.log('Order data:', orderData);
+      alert('Заказ оформлен! (в режиме отладки)');
+    }
+
+    // Сбрасываем состояние
+    setShowTariff(false);
+    resetPoints();
+
+
     
     // После заказа можно сбросить состояние
     alert('Заказ оформлен!');
