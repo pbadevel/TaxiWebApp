@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
 
@@ -131,11 +131,26 @@ export default function CustomMapWrapper() {
   const [tg, setTg] = useState<any>(null);
 
   useEffect(() => {
-    const telegram = window.Telegram?.WebApp;
-    if (telegram) {
-      telegram.ready();
-      setTg(telegram);
+    initializeTelegram();
+  }, []);
+
+  const initializeTelegram = useCallback(async () => {
+    try {
+      const WebApp = window.Telegram?.WebApp
+      
+      setTg(WebApp);
+
+      if (!WebApp) throw new Error('Telegram WebApp not available');
+      
+      await WebApp.ready();
+      WebApp.expand();
+
+    
+    } catch (error) {
+      console.error('Initialization error:', error);
+      // setLoading(false);
     }
+    return null;
   }, []);
 
 
