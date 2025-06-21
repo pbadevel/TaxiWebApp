@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
 
@@ -102,7 +102,7 @@ const cities: City[] = [
 
 
 
-export default function CustomMapWrapper(tg: any) {
+export default function CustomMapWrapper() {
   const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
   
   const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
@@ -126,9 +126,34 @@ export default function CustomMapWrapper(tg: any) {
   const [routeNodes, setRouteNodes] = useState<any[]>([]); 
 
   const moveTimeout = useRef<NodeJS.Timeout | null>(null);
-
-
   
+
+
+  const [tg, setTg] = useState<any>(null);
+
+
+  useEffect(() => {
+    initializeTelegram();
+  }, []);
+
+  const initializeTelegram = useCallback(async () => {
+    try {
+      const WebApp = window.Telegram?.WebApp
+      
+      setTg(WebApp);
+
+      if (!WebApp) throw new Error('Telegram WebApp not available');
+      
+      await WebApp.ready();
+      WebApp.expand();
+
+    
+    } catch (error) {
+      console.error('Initialization error:', error);
+      // setLoading(false);
+    }
+    return null;
+  }, []);
 
 
   useEffect(() => {
