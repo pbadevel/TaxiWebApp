@@ -7,16 +7,7 @@ const nextConfig: NextConfig = {
     assetPrefix: '/TalkDrive/',
     trailingSlash: true,
     
-    
-    // Для API роутов
-    // async rewrites() {
-    //     return [
-    //      {
-    //     source: '/api/:path*',
-    //     destination: '/api/:path*',
-    //   },
-    //     ]
-    // },
+ 
     async headers() {
         
         return [
