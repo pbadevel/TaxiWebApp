@@ -8,17 +8,17 @@ import TariffSelection from './TariffSelection'; // Новый компонен�
 // import RouteMap from './RouteMap';
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
-
-
+import shuffleArray from '@/utils/Shuffle';
 
 
 
 interface Tariff {
-  id: string;
+  id: number;
   name: string;
   price: number;
   time: string;
   icon: string;
+  distance: string;
 }
 
 interface Point {
@@ -26,11 +26,18 @@ interface Point {
   lng: number;
 }
 
+interface TariffOption {
+  tariffId: number;
+  name: string;
+}
+
 interface City {
   id: string;
   name: string;
   coords: [number, number];
+  tariffs?: TariffOption[]; // Массив тарифов (может быть несколько)
 }
+
 // Динамическая загрузка всех картографических компонентов
 const MapContainer = dynamic(
   () => import('react-leaflet').then(mod => mod.MapContainer),
@@ -94,7 +101,7 @@ const cities: City[] = [
   { id: "7", name: "Владивосток", coords: [43.1155, 131.8855] },
   { id: "6", name: "Омск", coords: [54.9914, 73.3645] },
   { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203] },
-  { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098] }
+  { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098], tariffs: [{tariffId: 2, name:"Эконом"}, {tariffId: 58, name:"Комфорт"}, {tariffId: 59, name:"Комфорт+"}]}
 ];
 
 
@@ -174,44 +181,74 @@ export default function CustomMapWrapper() {
     ];
 
     try {
-      // Делаем ОДИН запрос для тарифа ID=1
-      const response = await getDistanceTariff(selectedCity.id, 1, points);
+      const tariffs: Tariff[] = [];
       
-      // Извлекаем данные из ответа
-      const { min_price, pre_price, fix_price, execution_time, nodes } = response;
+      const cars = ['🚕', "🚗", "🏎", "🚕", "🚖", '🚘', '🚙'];
+
+      shuffleArray(cars);
       
-      // Сохраняем точки маршрута
-      if (nodes && nodes.length > 0) {
-        setRouteNodes(nodes);
-      }
+      let i = 0;
       
-      // Формируем тарифы на основе полученных цен
-      const tariffs = [
-        {
-          id: 'econom',
-          name: 'ЭКОНОМ',
-          icon: '🚕',
-          price: parseInt(min_price) || 0,
-          time: getEstimatedTime(response.distance),
-          distance: response.distance || '0 км'
-        },
-        {
-          id: 'comfort',
-          name: 'КОМФОРТ',
-          icon: '🚙',
-          price: parseInt(pre_price) || 0,
-          time: getEstimatedTime(response.distance),
-          distance: response.distance || '0 км'
-        },
-        {
-          id: 'comfort_plus',
-          name: 'КОМФОРТ+',
-          icon: '🚘',
-          price: parseInt(fix_price) || 0,
-          time: getEstimatedTime(response.distance),
-          distance: response.distance || '0 км'
+      selectedCity.tariffs?.forEach(async (tariff) => {
+
+        const response = await getDistanceTariff(selectedCity.id, tariff.tariffId, points);
+        
+        // Извлекаем данные из ответа
+        const { fix_price, nodes } = response;
+        
+        // Сохраняем точки маршрута
+        if (nodes && nodes.length > 0) {
+          setRouteNodes(nodes);
         }
-      ];
+        console.log(tariff.name)
+
+        tariffs.push(
+          {
+            id: tariff.tariffId,
+            name: tariff.name,
+            icon: cars[i],
+            price: parseInt(fix_price) || 0,
+            time: getEstimatedTime(response.distance),
+            distance: (response.distance as unknown as string) + " км" || '0 км'
+          },
+        )
+
+        i++;
+        
+      })
+
+      // tariffs.push(
+      //     {
+      //       id: 0,
+      //       name: "Тест",
+      //       icon: 'A',
+      //       price: parseInt("299") || 0,
+      //       time: getEstimatedTime(39),
+      //       distance: "13"
+      //     },
+      //   )
+      
+      // Делаем ОДИН запрос для тарифа ID=1
+      // Формируем тарифы на основе полученных цен
+      
+        
+      //   {
+      //     id: 'comfort',
+      //     name: 'КОМФОРТ',
+      //     icon: '🚙',
+      //     price: parseInt(pre_price) || 0,
+      //     time: getEstimatedTime(response.distance),
+      //     distance: response.distance || '0 км'
+      //   },
+      //   {
+      //     id: 'comfort_plus',
+      //     name: 'КОМФОРТ+',
+      //     icon: '🚘',
+      //     price: parseInt(fix_price) || 0,
+      //     time: getEstimatedTime(response.distance),
+      //     distance: response.distance || '0 км'
+      //   }
+      // ];
 
       setCalculatedTariffs(tariffs);
       setShowTariff(true);
@@ -311,12 +348,16 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
     const orderData = JSON.stringify({
       startPoint: startPoint ? [startPoint.lng, startPoint.lat] : null,
       endPoint: endPoint ? [endPoint.lng, endPoint.lat] : null,
+
       startAddress,
       endAddress,
-      options: specialRequests,
+      
       tariffId,
+      uintId: selectedCity.id,
+      options: specialRequests,
+      finalPrice,
+      
       paymentMethod,
-      finalPrice
     });
 
     
