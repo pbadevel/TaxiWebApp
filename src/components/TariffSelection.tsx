@@ -41,17 +41,20 @@ export default function TariffSelection({
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
 
-  console.log(tariffs[0]?.id)
   // Список дополнительных опций
   const specialOptions: SpecialOption[] = [
     { id: 'child_seat', name: 'Детское кресло', price: 50 },
     { id: 'pet', name: 'Перевозка животного', price: 100 },
     { id: 'luggage', name: 'Большой багаж', price: 70 }
   ];
-
+  
   // Находим выбранный тариф
-  const selectedTariffData = useMemo(() => 
-    tariffs.find(t => t.id === selectedTariff) || tariffs[0]?.id, 
+  const selectedTariffData = useMemo(() => {
+    
+    const PreSelectedTariff = tariffs.find(t => t.id === selectedTariff) || tariffs[0];
+    setSelectedTariff(PreSelectedTariff.id); 
+    console.log(tariffs[0]?.id)
+  }, 
     [selectedTariff, tariffs]
   );
 
