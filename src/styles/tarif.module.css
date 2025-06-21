@@ -379,5 +379,15 @@
 
 
 .ButtonInactive{
-  display: none;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #5a5261, #3a1157);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 10px;
 }
