@@ -38,6 +38,16 @@ interface City {
   tariffs?: TariffOption[]; // Массив тарифов (может быть несколько)
 }
 
+declare global {
+  interface Window {
+    Telegram: {
+      WebApp: any;
+    };
+  }
+}
+
+
+
 // Динамическая загрузка всех картографических компонентов
 const MapContainer = dynamic(
   () => import('react-leaflet').then(mod => mod.MapContainer),
@@ -103,6 +113,7 @@ const cities: City[] = [
   { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203] },
   { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098], tariffs: [{tariffId: 2, name:"Эконом"}, {tariffId: 58, name:"Комфорт"}, {tariffId: 59, name:"Комфорт+"}]}
 ];
+
 
 
 
@@ -217,39 +228,6 @@ export default function CustomMapWrapper() {
         
       })
 
-      // tariffs.push(
-      //     {
-      //       id: 0,
-      //       name: "Тест",
-      //       icon: 'A',
-      //       price: parseInt("299") || 0,
-      //       time: getEstimatedTime(39),
-      //       distance: "13"
-      //     },
-      //   )
-      
-      // Делаем ОДИН запрос для тарифа ID=1
-      // Формируем тарифы на основе полученных цен
-      
-        
-      //   {
-      //     id: 'comfort',
-      //     name: 'КОМФОРТ',
-      //     icon: '🚙',
-      //     price: parseInt(pre_price) || 0,
-      //     time: getEstimatedTime(response.distance),
-      //     distance: response.distance || '0 км'
-      //   },
-      //   {
-      //     id: 'comfort_plus',
-      //     name: 'КОМФОРТ+',
-      //     icon: '🚘',
-      //     price: parseInt(fix_price) || 0,
-      //     time: getEstimatedTime(response.distance),
-      //     distance: response.distance || '0 км'
-      //   }
-      // ];
-
       setCalculatedTariffs(tariffs);
       setShowTariff(true);
     } catch (error) {
@@ -342,7 +320,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
   };
 
 
-  const handleOrderTaxi = (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: number) => {
+  const handleOrderTaxi = (tariffId: number, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: number) => {
     console.log('Заказ такси с тарифом:', tariffId, paymentMethod, specialRequests);
     
     const orderData = JSON.stringify({

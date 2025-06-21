@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import styles from '../styles/tarif.module.css';
 
 interface Tariff {
-  id: string;
+  id: number;
   name: string;
   price: number;
   time: string;
@@ -22,7 +22,7 @@ interface TariffSelectionProps {
   startAddress: string;
   endAddress: string;
   onBack: () => void;
-  onOrder: (tariffId: string, 
+  onOrder: (tariffId: number, 
     paymentMethod: "cash" | "card", 
     specialRequests: string[], 
     finalPrice: number
@@ -37,7 +37,7 @@ export default function TariffSelection({
   onOrder,
   tariffs
 }: TariffSelectionProps) {
-  const [selectedTariff, setSelectedTariff] = useState<string>('econom');
+  const [selectedTariff, setSelectedTariff] = useState<number>(0);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
   
