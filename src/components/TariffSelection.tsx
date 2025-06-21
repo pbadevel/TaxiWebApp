@@ -37,7 +37,7 @@ export default function TariffSelection({
   onOrder,
   tariffs
 }: TariffSelectionProps) {
-  const [selectedTariff, setSelectedTariff] = useState<number>(0);
+  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0].id);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
   
