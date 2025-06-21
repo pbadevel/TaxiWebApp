@@ -9,7 +9,6 @@ import TariffSelection from './TariffSelection'; // Новый компонен�
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
 import shuffleArray from '@/utils/Shuffle';
-import { targetOrigin } from '@telegram-apps/sdk-react';
 
 
 
