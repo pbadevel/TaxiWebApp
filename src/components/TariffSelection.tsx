@@ -37,10 +37,10 @@ export default function TariffSelection({
   onOrder,
   tariffs
 }: TariffSelectionProps) {
-  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0].id);
+  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0]?.id);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
-  
+
   // Список дополнительных опций
   const specialOptions: SpecialOption[] = [
     { id: 'child_seat', name: 'Детское кресло', price: 50 },
