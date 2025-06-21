@@ -8,11 +8,6 @@ import { useEffect, useCallback } from 'react';
 
 export default function Home() {
 
-  
-  useEffect(() => {
-    initializeTelegram();
-  }, []);
-  
   const initializeTelegram = useCallback(async () => {
     try {
       const WebApp = window.Telegram?.WebApp
@@ -22,7 +17,7 @@ export default function Home() {
       await WebApp.ready();
       WebApp.expand();
 
-    
+      return WebApp
     } catch (error) {
       console.error('Initialization error:', error);
       // setLoading(false);
@@ -35,7 +30,7 @@ export default function Home() {
     <main className={styles.container}>
       {/* Контейнер карты с фиксированным маркером */}
       <div className={styles.mapContainerWrapper}>
-         <CustomMapWrapper/>
+         <CustomMapWrapper tg={initializeTelegram()}/>
       </div>
     </main>
   );
