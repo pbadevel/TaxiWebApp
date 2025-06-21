@@ -51,7 +51,7 @@ export default function TariffSelection({
 
   // Находим выбранный тариф
   const selectedTariffData = useMemo(() => 
-    tariffs.find(t => t.id === selectedTariff) || tariffs[0], 
+    tariffs.find(t => t.id === selectedTariff) || tariffs[0]?.id, 
     [selectedTariff, tariffs]
   );
 
