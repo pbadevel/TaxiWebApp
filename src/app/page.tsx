@@ -1,6 +1,6 @@
 import CustomMapWrapper from '@/components/MapWrapper';
 import styles from '../styles/page.module.css';
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 
 
 
