@@ -9,6 +9,7 @@ import TariffSelection from './TariffSelection'; // Новый компонен�
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
 import shuffleArray from '@/utils/Shuffle';
+import { targetOrigin } from '@telegram-apps/sdk-react';
 
 
 
@@ -64,53 +65,54 @@ const RouteMap = dynamic(() => import('../components/RouteMap'), {
 
 
 const cities: City[] = [
-  { id: "52", name: "Красноярск", coords: [56.0153, 92.8932] },
-  { id: "51", name: "Белгород", coords: [50.595, 36.5873] },
-  { id: "50", name: "Пятигорск", coords: [44.0486, 43.0594] },
-  { id: "49", name: "Архангельск", coords: [64.5393, 40.5187] },
-  { id: "48", name: "Ставрополь", coords: [45.0445, 41.969] },
-  { id: "47", name: "Рязань", coords: [54.6194, 39.7449] },
-  { id: "45", name: "Подольск (Моск)", coords: [55.4242, 37.5547] },
-  { id: "44", name: "Астрахань", coords: [46.3479, 48.0336] },
-  { id: "43", name: "Киров (Киров, обл)", coords: [58.6036, 49.668] },
-  { id: "42", name: "Ижевск", coords: [56.8527, 53.2115] },
-  { id: "41", name: "Пенза", coords: [53.195, 45.0183] },
-  { id: "40", name: "Ульяновск", coords: [54.3142, 48.4031] },
-  { id: "39", name: "Липецк", coords: [52.6088, 39.5992] },
-  { id: "38", name: "Томск", coords: [56.4846, 84.9476] },
-  { id: "37", name: "Барнаул", coords: [53.3561, 83.7496] },
-  { id: "36", name: "Балашиха (Моск. обл)", coords: [55.8094, 37.9581] },
-  { id: "35", name: "Набережные Челны", coords: [55.7436, 52.3958] },
-  { id: "34", name: "Новокузнецк (Кемер. обл)", coords: [53.7865, 87.1552] },
-  { id: "33", name: "Вологда", coords: [59.2205, 39.8915] },
-  { id: "32", name: "Брянск", coords: [53.2434, 34.3642] },
-  { id: "31", name: "Магнитогорск", coords: [53.4117, 58.9844] },
-  { id: "30", name: "Саратов", coords: [51.5924, 45.9608] },
-  { id: "29", name: "Ярославль", coords: [57.6261, 39.8845] },
-  { id: "28", name: "Керчь", coords: [45.3561, 36.4674] },
-  { id: "27", name: "Тюмень", coords: [57.153, 65.5343] },
-  { id: "26", name: "Сочи", coords: [43.5855, 39.7231] },
-  { id: "25", name: "Иркутск", coords: [52.2896, 104.2806] },
-  { id: "24", name: "Севастополь", coords: [44.6166, 33.5254] },
-  { id: "23", name: "Краснодар", coords: [45.0355, 38.9753] },
-  { id: "22", name: "Оренбург", coords: [51.7682, 55.097] },
-  { id: "21", name: "Великий Новгород", coords: [58.5228, 31.2698] },
-  { id: "20", name: "Москва", coords: [55.751244, 37.618423] },
-  { id: "19", name: "Челябинск", coords: [55.1598, 61.4025] },
-  { id: "18", name: "Нижний Новгород", coords: [56.3269, 44.0075] },
-  { id: "17", name: "Новосибирск", coords: [55.0084, 82.9357] },
-  { id: "16", name: "Пермь", coords: [58.0105, 56.2294] },
-  { id: "15", name: "Волгоград", coords: [48.7071, 44.517] },
-  { id: "14", name: "Хабаровск", coords: [48.4802, 135.0719] },
-  { id: "13", name: "Екатеринбург", coords: [56.838, 60.5975] },
-  { id: "12", name: "Тольятти", coords: [53.5078, 49.4204] },
-  { id: "11", name: "Воронеж", coords: [51.6608, 39.2003] },
-  { id: "10", name: "Уфа", coords: [54.7351, 55.9587] },
-  { id: "9", name: "Кемерово", coords: [55.3547, 86.0884] },
-  { id: "8", name: "Казань", coords: [55.7963, 49.1088] },
-  { id: "7", name: "Владивосток", coords: [43.1155, 131.8855] },
-  { id: "6", name: "Омск", coords: [54.9914, 73.3645] },
-  { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203] },
+  { id: "53", name: "Симферополь", coords: [44.95212, 34.10242], tariffs: [{tariffId: 147, name:"Эконом"}, {tariffId: 148, name:"Комфорт"}, {tariffId: 149, name:"Комфорт+"}, {tariffId: 150, name:"Минивэн"}]},
+  { id: "52", name: "Красноярск", coords: [56.0153, 92.8932], tariffs: [{tariffId: 57, name:"Эконом"}, {tariffId: 123, name:"Комфорт"}, {tariffId: 124, name:"Комфорт+"}, {tariffId: 125, name:"Минивэн"}]},
+  { id: "51", name: "Белгород", coords: [50.595, 36.5873], tariffs: [{tariffId: 56, name:"Эконом"}, {tariffId: 141, name:"Комфорт"}, {tariffId: 142, name:"Комфорт+"}, {tariffId: 143, name:"Минивэн"}]},
+  { id: "50", name: "Пятигорск", coords: [44.0486, 43.0594], tariffs: [{tariffId: 55, name:"Эконом"}, {tariffId: 154, name:"Комфорт"}, {tariffId: 155, name:"Комфорт+"}, {tariffId: 156, name:"Минивэн"}]},
+  { id: "49", name: "Архангельск", coords: [64.5393, 40.5187], tariffs: [{tariffId: 54, name:"Эконом"}, {tariffId: 86, name:"Комфорт"}, {tariffId: 87, name:"Комфорт+"}]},
+  { id: "48", name: "Ставрополь", coords: [45.0445, 41.969], tariffs: [{tariffId: 53, name:"Эконом"}, {tariffId: 91, name:"Комфорт"}, {tariffId: 92, name:"Комфорт+"}, {tariffId: 93, name:"Минивэн"}]},
+  { id: "47", name: "Рязань", coords: [54.6194, 39.7449], tariffs: [{tariffId: 52, name:"Эконом"}, {tariffId: 94, name:"Комфорт"}, {tariffId: 95, name:"Комфорт+"}, {tariffId: 96, name:"Минивэн"}]},
+  { id: "45", name: "Подольск (Моск)", coords: [55.4242, 37.5547], tariffs: [{tariffId: 51, name:"Оптимал"}]},
+  { id: "44", name: "Астрахань", coords: [46.3479, 48.0336], tariffs: [{tariffId: 50, name:"Эконом"}, {tariffId: 135, name:"Комфорт"}, {tariffId: 136, name:"Комфорт+"}, {tariffId: 137, name:"Минивэн"}]},
+  { id: "43", name: "Киров (Киров, обл)", coords: [58.6036, 49.668], tariffs: [{tariffId: 49, name:"Эконом"}, {tariffId: 117, name:"Комфорт"}, {tariffId: 118, name:"Комфорт+"}, {tariffId: 119, name:"Минивэн"}]},
+  { id: "42", name: "Ижевск", coords: [56.8527, 53.2115], tariffs: [{tariffId: 48, name:"Эконом"}]},
+  { id: "41", name: "Пенза", coords: [53.195, 45.0183], tariffs: [{tariffId: 46, name:"Эконом"}, {tariffId: 97, name:"Комфорт"}, {tariffId: 98, name:"Комфорт+"}, {tariffId: 99, name:"Минивэн"}]},
+  { id: "40", name: "Ульяновск", coords: [54.3142, 48.4031], tariffs: [{tariffId: 45, name:"Оптимал"}]},
+  { id: "39", name: "Липецк", coords: [52.6088, 39.5992], tariffs: [{tariffId: 44, name:"Эконом"}, {tariffId: 129, name:"Комфорт"}, {tariffId: 131, name:"Комфорт+"}, {tariffId: 130, name:"Минивэн"}]},
+  { id: "38", name: "Томск", coords: [56.4846, 84.9476], tariffs: [{tariffId: 43, name:"Эконом"}, {tariffId: 120, name:"Комфорт"}, {tariffId: 121, name:"Комфорт+"}, {tariffId: 122, name:"Минивэн"}]},
+  { id: "37", name: "Барнаул", coords: [53.3561, 83.7496], tariffs: [{tariffId: 42, name:"Эконом"}, {tariffId: 84, name:"Комфорт"}, {tariffId: 85, name:"Комфорт+"}]},
+  { id: "36", name: "Балашиха (Моск. обл)", coords: [55.8094, 37.9581], tariffs: [{tariffId: 41, name:"Оптимал"}]},
+  { id: "35", name: "Набережные Челны", coords: [55.7436, 52.3958], tariffs: [{tariffId: 40, name:"Оптимал"}]},
+  { id: "34", name: "Новокузнецк (Кемер. обл)", coords: [53.7865, 87.1552], tariffs: [{tariffId: 39, name:"Эконом"}, {tariffId: 82, name:"Комфорт"}, {tariffId: 83, name:"Комфорт+"}]},
+  { id: "33", name: "Вологда", coords: [59.2205, 39.8915], tariffs: [{tariffId: 38, name:"Оптимал"}]},
+  { id: "32", name: "Брянск", coords: [53.2434, 34.3642], tariffs: [{tariffId: 37, name:"Эконом"}, {tariffId: 132, name:"Комфорт"}, {tariffId: 133, name:"Комфорт+"}, {tariffId: 134, name:"Минивэн"}]},
+  { id: "31", name: "Магнитогорск", coords: [53.4117, 58.9844], tariffs: [{tariffId: 34, name:"Оптимал"}]},
+  { id: "30", name: "Саратов", coords: [51.5924, 45.9608], tariffs: [{tariffId: 33, name:"Эконом"}, {tariffId: 109, name:"Комфорт"}, {tariffId: 110, name:"Комфорт+"}, {tariffId: 111, name:"Минивэн"}]},
+  { id: "29", name: "Ярославль", coords: [57.6261, 39.8845], tariffs: [{tariffId: 32, name:"Эконом"}, {tariffId: 100, name:"Комфорт"}, {tariffId: 101, name:"Комфорт+"}, {tariffId: 102, name:"Минивэн"}]},
+  { id: "28", name: "Крым", coords: [45.3561, 36.4674], tariffs: [{tariffId: 31, name:"Эконом"}, {tariffId: 103, name:"Комфорт"}, {tariffId: 104, name:"Комфорт+"}, {tariffId: 105, name:"Минивэн"}]},
+  { id: "27", name: "Тюмень", coords: [57.153, 65.5343], tariffs: [{tariffId: 30, name:"Эконом"}, {tariffId: 144, name:"Комфорт"}, {tariffId: 145, name:"Комфорт+"}, {tariffId: 146, name:"Минивэн"}]},
+  { id: "26", name: "Сочи", coords: [43.5855, 39.7231], tariffs: [{tariffId: 29, name:"Эконом"}, {tariffId: 157, name:"Комфорт"}, {tariffId: 158, name:"Комфорт+"}]},
+  { id: "25", name: "Иркутск", coords: [52.2896, 104.2806], tariffs: [{tariffId: 23, name:"Эконом"}, {tariffId: 106, name:"Комфорт"}, {tariffId: 107, name:"Комфорт+"}, {tariffId: 108, name:"Минивэн"}]},
+  { id: "24", name: "Севастополь", coords: [44.6166, 33.5254], tariffs: [{tariffId: 22, name:"Эконом"}, {tariffId: 152, name:"Комфорт"}, {tariffId: 151, name:"Комфорт+"}, {tariffId: 153, name:"Минивэн"}]},
+  { id: "23", name: "Краснодар", coords: [45.0355, 38.9753], tariffs: [{tariffId: 21, name:"Эконом"}, {tariffId: 78, name:"Комфорт"}, {tariffId: 79, name:"Комфорт+"}]},
+  { id: "22", name: "Оренбург", coords: [51.7682, 55.097], tariffs: [{tariffId: 20, name:"Эконом"}, {tariffId: 138, name:"Комфорт"}, {tariffId: 139, name:"Комфорт+"}, {tariffId: 140, name:"Минивэн"}]},
+  { id: "21", name: "Великий Новгород", coords: [58.5228, 31.2698], tariffs: [{tariffId: 19, name:"Эконом"}, {tariffId: 126, name:"Комфорт"}, {tariffId: 127, name:"Комфорт+"}, {tariffId: 128, name:"Минивэн"}]},
+  { id: "20", name: "Москва", coords: [55.751244, 37.618423], tariffs: [{tariffId: 9, name:"Оптимал"}]},
+  { id: "19", name: "Челябинск", coords: [55.1598, 61.4025], tariffs: [{tariffId: 18, name:"Эконом"}, {tariffId: 113, name:"Комфорт"}, {tariffId: 114, name:"Комфорт+"}, {tariffId: 115, name:"Минивэн"}]},
+  { id: "18", name: "Нижний Новгород", coords: [56.3269, 44.0075], tariffs: [{tariffId: 17, name:"Эконом"}, {tariffId: 76, name:"Комфорт"}, {tariffId: 77, name:"Комфорт+"}, {tariffId: 112, name:"Минивэн"}]},
+  { id: "17", name: "Новосибирск", coords: [55.0084, 82.9357], tariffs: [{tariffId: 10, name:"Эконом"}, {tariffId: 74, name:"Комфорт"}, {tariffId: 75, name:"Комфорт+"}]},
+  { id: "16", name: "Пермь", coords: [58.0105, 56.2294], tariffs: [{tariffId: 16, name:"Оптимал"}]},
+  { id: "15", name: "Волгоград", coords: [48.7071, 44.517], tariffs: [{tariffId: 15, name:"Эконом"}, {tariffId: 72, name:"Комфорт"}, {tariffId: 73, name:"Комфорт+"},]},
+  { id: "14", name: "Хабаровск", coords: [48.4802, 135.0719], tariffs: [{tariffId: 14, name:"Эконом"}, {tariffId: 88, name:"Комфорт"}, {tariffId: 89, name:"Комфорт+"}]},
+  { id: "13", name: "Екатеринбург", coords: [56.838, 60.5975], tariffs: [{tariffId: 13, name:"Эконом"}, {tariffId: 70, name:"Комфорт"}, {tariffId: 71, name:"Комфорт+"}]},
+  { id: "12", name: "Тольятти", coords: [53.5078, 49.4204], tariffs: [{tariffId: 12, name:"Оптимал"}]},
+  { id: "11", name: "Воронеж", coords: [51.6608, 39.2003], tariffs: [{tariffId: 11, name:"Оптимал"}]},
+  { id: "10", name: "Уфа", coords: [54.7351, 55.9587], tariffs: [{tariffId: 8, name:"Эконом"}, {tariffId: 66, name:"Комфорт"}, {tariffId: 69, name:"Комфорт+"}]},
+  { id: "9", name: "Кемерово", coords: [55.3547, 86.0884], tariffs: [{tariffId: 7, name:"Эконом"}, {tariffId: 67, name:"Комфорт"}, {tariffId: 68, name:"Комфорт+"}]},
+  { id: "8", name: "Казань", coords: [55.7963, 49.1088], tariffs: [{tariffId: 6, name:"Оптимал"}]},
+  { id: "7", name: "Владивосток", coords: [43.1155, 131.8855], tariffs: [{tariffId: 5, name:"Эконом"}, {tariffId: 64, name:"Комфорт"}, {tariffId: 65, name:"Комфорт+"}]},
+  { id: "6", name: "Омск", coords: [54.9914, 73.3645], tariffs: [{tariffId: 4, name:"Эконом"}, {tariffId: 62, name:"Комфорт"}, {tariffId: 63, name:"Комфорт+"}]},
+  { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203], tariffs: [{tariffId: 3, name:"Эконом"}, {tariffId: 60, name:"Комфорт"}, {tariffId: 61, name:"Комфорт+"}]},
   { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098], tariffs: [{tariffId: 2, name:"Эконом"}, {tariffId: 58, name:"Комфорт"}, {tariffId: 59, name:"Комфорт+"}]}
 ];
 
@@ -190,19 +192,23 @@ export default function CustomMapWrapper() {
       [startPoint.lng, startPoint.lat],
       [endPoint.lng, endPoint.lat]
     ];
+    let allertedUser = false;
 
     try {
       const tariffs: Tariff[] = [];
       
       const cars = ['🚕', "🚗", "🏎", "🚕", "🚖", '🚘', '🚙'];
 
+
       shuffleArray(cars);
       
       let i = 0;
       
       selectedCity.tariffs?.forEach(async (tariff) => {
-
         const response = await getDistanceTariff(selectedCity.id, tariff.tariffId, points);
+        if (allertedUser) {
+          return null;
+        }
         
         // Извлекаем данные из ответа
         const { fix_price, nodes } = response;
@@ -211,25 +217,45 @@ export default function CustomMapWrapper() {
         if (nodes && nodes.length > 0) {
           setRouteNodes(nodes);
         }
-        console.log(tariff.name)
 
-        tariffs.push(
-          {
-            id: tariff.tariffId,
-            name: tariff.name,
-            icon: cars[i],
-            price: parseInt(fix_price) || 0,
-            time: getEstimatedTime(response.distance),
-            distance: (response.distance as unknown as string) + " км" || '0 км'
-          },
-        )
+        if (fix_price === '0' && !allertedUser) {
+          try{
+            tg.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
+          } catch (err) {
+            alert("Слишком маленькая дистанция, попробуйте еще раз.")
+            console.log('Too small distanse')
+          } finally {
+            setShowTariff(false);
+            resetPoints();
+            setRouteNodes([]);
+          }
+          allertedUser = true;
+          return null;
+        } else {
 
-        i++;
+          tariffs.push(
+            {
+              id: tariff.tariffId,
+              name: tariff.name,
+              icon: cars[i],
+              price: parseInt(fix_price) || 0,
+              time: getEstimatedTime(response.distance),
+              distance: (response.distance as unknown as string) + " км" || '0 км'
+            },
+          )
+  
+          i++;
+        }
         
       })
+      
+      if (!allertedUser) {
+        setCalculatedTariffs(tariffs);
+        setShowTariff(true);
+      } else {
+        setShowTariff(false);
+      }
 
-      setCalculatedTariffs(tariffs);
-      setShowTariff(true);
     } catch (error) {
       console.error('Failed to calculate tariffs:', error);
       setShowTariff(false)
@@ -270,8 +296,7 @@ export default function CustomMapWrapper() {
       setEndPoint(point);
       setEndAddress(addr);
     } else if (step === 'tarif') {
-      // После выбора точки прибытия показываем тарифы
-      setShowTariff(true);
+      // После выбора точки прибытия показываем тарифы useEffect
     }
   };
 
