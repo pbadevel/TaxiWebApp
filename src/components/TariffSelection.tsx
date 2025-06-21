@@ -1,6 +1,6 @@
 // components/TariffSelection.tsx
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import styles from '../styles/tarif.module.css';
 
 interface Tariff {
@@ -9,37 +9,70 @@ interface Tariff {
   price: number;
   time: string;
   icon: string;
-  distance?: string; // Добавляем опциональное поле расстояния
-
+  distance?: string;
 }
 
+interface SpecialOption {
+  id: string;
+  name: string;
+  price: number;
+}
 
 interface TariffSelectionProps {
   startAddress: string;
   endAddress: string;
   onBack: () => void;
-  onOrder: (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[]) => void;
-  tariffs: Tariff[]; // Принимаем рассчитанные тарифы
+  onOrder: (tariffId: string, 
+    paymentMethod: "cash" | "card", 
+    specialRequests: string[], 
+    finalPrice: number
+  ) => void;
+  tariffs: Tariff[];
 }
 
 export default function TariffSelection({ 
- startAddress, 
+  startAddress, 
   endAddress, 
   onBack,
   onOrder,
-  tariffs // Используем переданные тарифы вместо заглушек
+  tariffs
 }: TariffSelectionProps) {
   const [selectedTariff, setSelectedTariff] = useState<string>('econom');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
   
-
-  const specialOptions = [
+  // Список дополнительных опций
+  const specialOptions: SpecialOption[] = [
     { id: 'child_seat', name: 'Детское кресло', price: 50 },
     { id: 'pet', name: 'Перевозка животного', price: 100 },
     { id: 'luggage', name: 'Большой багаж', price: 70 }
   ];
 
+  // Находим выбранный тариф
+  const selectedTariffData = useMemo(() => 
+    tariffs.find(t => t.id === selectedTariff) || tariffs[0], 
+    [selectedTariff, tariffs]
+  );
+
+  // Рассчитываем итоговую цену
+  const finalPrice = useMemo(() => {
+    if (!selectedTariffData) return 0;
+    
+    // Базовая цена тарифа
+    let total = selectedTariffData.price;
+    
+    // Добавляем стоимость дополнительных опций
+    specialRequests.forEach(requestId => {
+      const option = specialOptions.find(opt => opt.id === requestId);
+      if (option) {
+        total += option.price;
+      }
+    });
+    
+    return total;
+  }, [selectedTariffData, specialRequests, specialOptions]);
+
+  // Переключение дополнительных опций
   const toggleSpecialRequest = (id: string) => {
     if (specialRequests.includes(id)) {
       setSpecialRequests(specialRequests.filter(item => item !== id));
@@ -49,9 +82,10 @@ export default function TariffSelection({
   };
 
   const handleOrder = () => {
-    // console.log("handle order!", selectedTariff, paymentMethod, specialRequests)
-    onOrder(selectedTariff, paymentMethod, specialRequests);
+    onOrder(selectedTariff, paymentMethod, specialRequests, finalPrice);
   };
+
+  
 
   return (
     <div className={styles.tariffContainer}>
@@ -64,26 +98,26 @@ export default function TariffSelection({
 
       {/* Адреса поездки */}
       <div className={styles.routeAddresses}>
-      <div className={styles.addressPoint}>
-        <div className={styles.addressMarker}>A</div>
-        <div className={styles.addressText}>
-          {startAddress.length > 30 
-            ? startAddress.substring(0, 30) + '...' 
-            : startAddress}
+        <div className={styles.addressPoint}>
+          <div className={styles.addressMarker}>A</div>
+          <div className={styles.addressText}>
+            {startAddress.length > 30 
+              ? `${startAddress.substring(0, 30)}...` 
+              : startAddress}
+          </div>
+        </div>
+        <div className={styles.addressPoint}>
+          <div className={styles.addressMarker}>Б</div>
+          <div className={styles.addressText}>
+            {endAddress.length > 30
+              ? `${endAddress.substring(0, 30)}...` 
+              : endAddress}
+          </div>
         </div>
       </div>
-      <div className={styles.addressPoint}>
-        <div className={styles.addressMarker}>Б</div>
-        <div className={styles.addressText}>
-          {endAddress.length > 30
-            ? endAddress.substring(0, 30) + '...' 
-            : endAddress}
-        </div>
-      </div>
-    </div>
 
       {/* Выбор тарифа */}
-       <div className={styles.tariffGrid}>
+      <div className={styles.tariffGrid}>
         {tariffs.map(tariff => (
           <div 
             key={tariff.id}
@@ -130,10 +164,17 @@ export default function TariffSelection({
               className={`${styles.requestOption} ${specialRequests.includes(option.id) ? styles.selectedRequest : ''}`}
               onClick={() => toggleSpecialRequest(option.id)}
             >
-              {option.name} +{option.price}₽
+              <div>{option.name}</div>
+              <div>+{option.price}₽</div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Блок с итоговой ценой */}
+      <div className={styles.finalPriceContainer}>
+        <div className={styles.finalPriceLabel}>Итоговая стоимость:</div>
+        <div className={styles.finalPriceValue}>{finalPrice}₽</div>
       </div>
 
       {/* Кнопка заказа */}
@@ -141,7 +182,7 @@ export default function TariffSelection({
         className={styles.orderButton}
         onClick={handleOrder}
       >
-        Заказать такси
+        Заказать такси за {finalPrice}₽
       </button>
     </div>
   );

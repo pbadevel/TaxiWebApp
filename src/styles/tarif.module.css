@@ -351,3 +351,28 @@
   color: #8A2BE2;
 }
 
+
+
+
+.finalPriceContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 15px 0;
+  border: 1px solid #e9ecef;
+}
+
+.finalPriceLabel {
+  font-size: 16px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.finalPriceValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #3b82f6;
+}

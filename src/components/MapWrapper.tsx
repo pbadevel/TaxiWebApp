@@ -1,16 +1,17 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import styles from '../styles/page.module.css';
-
 
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
 // import RouteMap from './RouteMap';
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
-import { calculateRouteAndPrice } from '@/utils/taxiApi';
+
+
+
+
 
 interface Tariff {
   id: string;
@@ -147,7 +148,7 @@ export default function CustomMapWrapper() {
 
     try {
       // Делаем ОДИН запрос для тарифа ID=1
-      const response = await getDistanceTariff(4, 1, points);
+      const response = await getDistanceTariff(selectedCity.id, 1, points);
       
       // Извлекаем данные из ответа
       const { min_price, pre_price, fix_price, execution_time, nodes } = response;
@@ -164,9 +165,7 @@ export default function CustomMapWrapper() {
           name: 'ЭКОНОМ',
           icon: '🚕',
           price: parseInt(min_price) || 0,
-          time: execution_time 
-            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
-            : '5-10 мин',
+          time: getEstimatedTime(response.distance),
           distance: response.distance || '0 км'
         },
         {
@@ -174,9 +173,7 @@ export default function CustomMapWrapper() {
           name: 'КОМФОРТ',
           icon: '🚙',
           price: parseInt(pre_price) || 0,
-          time: execution_time 
-            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
-            : '5-10 мин',
+          time: getEstimatedTime(response.distance),
           distance: response.distance || '0 км'
         },
         {
@@ -184,9 +181,7 @@ export default function CustomMapWrapper() {
           name: 'КОМФОРТ+',
           icon: '🚘',
           price: parseInt(fix_price) || 0,
-          time: execution_time 
-            ? `${Math.round(parseInt(execution_time) / 60)} мин` 
-            : '5-10 мин',
+          time: getEstimatedTime(response.distance),
           distance: response.distance || '0 км'
         }
       ];
@@ -201,6 +196,12 @@ export default function CustomMapWrapper() {
     } finally {
       setIsCalculating(false);
     }
+  };
+
+  const getEstimatedTime = (distance: number) => {
+    // Средняя скорость 50 км/ч + 5 минут на подачу
+    const minutes = Math.round((distance / 50) * 60) + 5;
+    return `${minutes} мин`;
   };
 
   // Обработчик смены города
@@ -245,7 +246,7 @@ export default function CustomMapWrapper() {
   };
 
   // Обработчик открытия модального окна
-const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
+const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
       setCurrentAddressType(type);
       setIsAddressModalOpen(true);
   };
@@ -277,8 +278,28 @@ const handleModalAddressClick = (type: 'start' | 'end' | "tarif") => {
   };
 
 
-  const handleOrderTaxi = (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[]) => {
+  const handleOrderTaxi = (tariffId: string, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: number) => {
     console.log('Заказ такси с тарифом:', tariffId, paymentMethod, specialRequests);
+    
+    const DataToSend = {
+      startPoint: [startPoint?.lng, startPoint?.lat],
+      endPoint: [endPoint?.lng, endPoint?.lat],
+
+      startAddress: startAddress,
+      endAddress: endAddress,
+
+      options: specialRequests,
+
+      tariffId: tariffId,
+
+      paymentMethod: paymentMethod,
+
+      finnalPrice: finalPrice
+
+
+    }
+    
+    console.log(DataToSend)
     
     // После заказа можно сбросить состояние
     alert('Заказ оформлен!');

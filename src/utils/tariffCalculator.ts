@@ -1,9 +1,9 @@
 export async function getDistanceTariff(
-  unitId: number = 4,
+  unitId: number|string = 4,
   tarifId: number = 2,
   points: [number, number][]
 ): Promise<{
-  distance: string;
+  distance: number;
   min_price: string;
   pre_price: string;
   fix_price: string;
@@ -35,7 +35,7 @@ export async function getDistanceTariff(
      if (data.result === "1") {
       return {
         ...data,
-        distance: data.distance || '0',
+        distance: data.distance || 0,
         min_price: data.fix_price_raw	 || '0',
         pre_price: data.fix_price_raw	 || '0',
         fix_price: data.fix_price_raw	 || '0',
@@ -48,7 +48,7 @@ export async function getDistanceTariff(
   } catch (error) {
     console.error('Ошибка расчета стоимости:', error);
     return {
-      distance: '0',
+      distance: 0,
       min_price: '0',
       pre_price: '0',
       fix_price: '0',
