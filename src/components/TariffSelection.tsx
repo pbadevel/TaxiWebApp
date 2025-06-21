@@ -216,17 +216,17 @@ export default function TariffSelection({
       <div className={styles.finalPriceContainer}>
         <div className={styles.finalPriceLabel}>Итоговая стоимость:</div>
         <div className={styles.finalPriceValue}>
-          {finalPrice > 0 ? `${finalPrice}₽` : 'Выберите тариф...'}
+          {finalPrice as unknown as number > 0 ? `${finalPrice}₽` : 'Выберите тариф...'}
         </div>
       </div>
 
       {/* Кнопка заказа */}
       <button 
-        className={`${styles.orderButton} ${finalPrice > 0 ? '' : styles.ButtonInactive}`}
+        className={`${styles.orderButton} ${finalPrice as unknown as number > 0 ? '' : styles.ButtonInactive}`}
         onClick={handleOrder}
-        disabled={finalPrice <= 0}
+        disabled={finalPrice as unknown as number <= 0}
       >
-        {finalPrice > 0 ? `Заказать такси за ${finalPrice}₽` : 'Рассчитывается...'}
+        {finalPrice as unknown as number > 0 ? `Заказать такси за ${finalPrice}₽` : 'Рассчитывается...'}
       </button>
     </div>
   );
