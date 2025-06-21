@@ -341,13 +341,6 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
     // Сбрасываем состояние
     setShowTariff(false);
     resetPoints();
-
-
-    
-    // После заказа можно сбросить состояние
-    alert('Заказ оформлен!');
-    setShowTariff(false);
-    resetPoints();
   };
 
 
