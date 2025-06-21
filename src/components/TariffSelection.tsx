@@ -82,7 +82,7 @@ export default function TariffSelection({
 
   // Рассчитываем итоговую цену
   const finalPrice = useMemo(() => {
-    if (!selectedTariffData) return 0;
+    if (!selectedTariffData) return '0';
     
     let total = selectedTariffData.price;
     
