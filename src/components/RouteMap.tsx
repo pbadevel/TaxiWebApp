@@ -99,7 +99,7 @@ const MapHandler = ({
           updateAddress(center.lat, center.lng);
           setLastPoint(center);
         }
-      }, 100);
+      }, 400);
     };
 
     // Функция для получения адреса по координатам
