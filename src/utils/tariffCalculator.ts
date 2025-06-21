@@ -14,7 +14,8 @@ export async function getDistanceTariff(
   try {
     const baseAddres = process.env.NEXT_PUBLIC_BASE_PATH;
 
-    const response = await fetch(`${baseAddres}${baseAddres}/api/calculate-taxi`, {
+
+    const response = await fetch(`${baseAddres}/api/calculate-taxi`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
