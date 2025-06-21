@@ -344,7 +344,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
   };
 
 
-  const handleOrderTaxi = (tariffId: number, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: number) => {
+  const handleOrderTaxi = (tariffId: number, paymentMethod: "cash" | "card", specialRequests: string[], finalPrice: string) => {
     console.log('Заказ такси с тарифом:', tariffId, paymentMethod, specialRequests);
     
     const orderData = JSON.stringify({
