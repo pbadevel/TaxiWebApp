@@ -27,18 +27,27 @@ interface RouteNode {
   zid: string;
 }
 
-
+interface CityBounds {
+  id: string;
+  bounds: [[number, number], [number, number]]; // [SW, NE]
+}
 
 
 // Компонент для обработки событий карты
 const MapHandler = ({ 
   step, 
   onSetPoint,
-  onMapMove
+  onMapMove,
+  selectedCityId,
+  citiesBounds,
+  onPointValidation
   }: { 
     step: 'start' | 'end' | 'tarif'; 
     onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
     onMapMove: (point: { lat: number; lng: number }, address: string) => void;
+    selectedCityId: string | null;
+    citiesBounds: CityBounds[]; // Передаем границы городов
+    onPointValidation: (isValid: boolean) => void; // Колбэк для валидации точки
   }) => {
     const map = useMap();
     const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
@@ -46,13 +55,34 @@ const MapHandler = ({
 
     const baseApiPath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
+    const checkPointInCity = (lat: number, lng: number): boolean => {
+      if (!selectedCityId) return true;
+      
+      const city = citiesBounds.find(c => c.id === selectedCityId);
+      if (!city) return true;
+
+      const [[swLat, swLon], [neLat, neLon]] = city.bounds;
+      return (
+        lat >= swLat &&
+        lat <= neLat &&
+        lng >= swLon &&
+        lng <= neLon
+      );
+    };
+
 
 
     // update address name
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
+      const isValid = checkPointInCity(lat, lng);
+      onPointValidation(isValid);
+
+      if (!isValid && isClick) {
+        alert('Выбранная точка находится за пределами города');
+        return;
+      }
 
       try {
-        // const response = await fetch(`${baseApiPath}/api/reverse-geocode?lat=${lat}&lon=${lng}`);
 
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
         const response = await fetch(url);
@@ -64,13 +94,10 @@ const MapHandler = ({
           const address = data.display_name.split(',').slice(0, 4).join(',');
           
           
-          // Для кликов - устанавливаем точку
-          if (!isClick) {
-            
+          if (!isClick && isValid) {
             onSetPoint({ lat, lng }, address);
             onMapMove({ lat, lng }, address);
-            
-          } 
+          }
           }
       } catch (error) {
         console.error('Ошибка получения адреса:', error);
@@ -99,7 +126,7 @@ const MapHandler = ({
           updateAddress(center.lat, center.lng);
           setLastPoint(center);
         }
-      }, 400);
+      }, 200);
     };
 
     // Функция для получения адреса по координатам
@@ -231,6 +258,9 @@ interface RouteMapProps {
   onMapMove: (point: { lat: number; lng: number }, address: string) => void;
   onMapLoad: (map: L.Map) => void;
   routeNodes?: RouteNode[]; // Добавим пропс для точек маршрута
+  selectedCityId: string | null;
+  citiesBounds: CityBounds[]; // Передаем границы городов
+  onPointValidation?: (isValid: boolean) => void; // Колбэк для валидации точки
 }
 
 
@@ -243,7 +273,10 @@ export default function RouteMap({
   onSetPoint,
   onMapMove,
   onMapLoad,
-  routeNodes = []
+  routeNodes = [],
+  selectedCityId,
+  citiesBounds,
+  onPointValidation
 }: RouteMapProps) {
   const map = useMap();
   
@@ -265,9 +298,12 @@ export default function RouteMap({
       />
       
       <MapHandler 
-        step={step} 
+       step={step} 
         onSetPoint={onSetPoint}
         onMapMove={onMapMove}
+        selectedCityId={selectedCityId}
+        citiesBounds={citiesBounds}
+        onPointValidation={onPointValidation}
       />
       
       <LocationMarker position={startPoint} type="start" />

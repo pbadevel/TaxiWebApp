@@ -59,6 +59,10 @@ const RouteMap = dynamic(() => import('../components/RouteMap'), {
   loading: () => <p>Загрузка карты...</p>
 });
 
+interface CityBounds {
+  id: string;
+  bounds: [[number, number], [number, number]]; // [SW, NE]
+}
 
 
 
@@ -114,7 +118,57 @@ const cities: City[] = [
   { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203], tariffs: [{tariffId: 3, name:"Эконом"}, {tariffId: 60, name:"Комфорт"}, {tariffId: 61, name:"Комфорт+"}]},
   { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098], tariffs: [{tariffId: 2, name:"Эконом"}, {tariffId: 58, name:"Комфорт"}, {tariffId: 59, name:"Комфорт+"}]}
 ];
-
+const citiesBounds: CityBounds[] = [
+  { id: "53", bounds: [[44.75, 33.85], [45.15, 34.35]] }, // Симферополь
+  { id: "52", bounds: [[55.80, 92.60], [56.30, 93.20]] }, // Красноярск
+  { id: "51", bounds: [[50.45, 36.40], [50.75, 36.80]] }, // Белгород
+  { id: "50", bounds: [[43.95, 42.95], [44.15, 43.15]] }, // Пятигорск
+  { id: "49", bounds: [[64.40, 40.30], [64.70, 40.80]] }, // Архангельск
+  { id: "48", bounds: [[44.90, 41.80], [45.20, 42.10]] }, // Ставрополь
+  { id: "47", bounds: [[54.50, 39.55], [54.75, 39.95]] }, // Рязань
+  { id: "45", bounds: [[55.35, 37.40], [55.50, 37.70]] }, // Подольск (Моск)
+  { id: "44", bounds: [[46.20, 47.80], [46.50, 48.20]] }, // Астрахань
+  { id: "43", bounds: [[58.45, 49.50], [58.75, 49.80]] }, // Киров (Киров, обл)
+  { id: "42", bounds: [[56.70, 53.00], [57.00, 53.40]] }, // Ижевск
+  { id: "41", bounds: [[53.10, 44.90], [53.30, 45.10]] }, // Пенза
+  { id: "40", bounds: [[54.20, 48.20], [54.40, 48.60]] }, // Ульяновск
+  { id: "39", bounds: [[52.50, 39.40], [52.70, 39.80]] }, // Липецк
+  { id: "38", bounds: [[56.35, 84.75], [56.60, 85.15]] }, // Томск
+  { id: "37", bounds: [[53.20, 83.55], [53.50, 83.95]] }, // Барнаул
+  { id: "36", bounds: [[55.75, 37.80], [55.90, 38.10]] }, // Балашиха (Моск. обл)
+  { id: "35", bounds: [[55.65, 52.25], [55.85, 52.55]] }, // Набережные Челны
+  { id: "34", bounds: [[53.65, 86.95], [53.90, 87.35]] }, // Новокузнецк (Кемер. обл)
+  { id: "33", bounds: [[59.10, 39.70], [59.35, 40.10]] }, // Вологда
+  { id: "32", bounds: [[53.10, 34.20], [53.35, 34.50]] }, // Брянск
+  { id: "31", bounds: [[53.30, 58.80], [53.50, 59.20]] }, // Магнитогорск
+  { id: "30", bounds: [[51.45, 45.80], [51.75, 46.10]] }, // Саратов
+  { id: "29", bounds: [[57.50, 39.70], [57.75, 40.10]] }, // Ярославль
+  { id: "28", bounds: [[44.20, 33.50], [45.50, 37.50]] }, // Крым (весь полуостров)
+  { id: "27", bounds: [[56.95, 65.35], [57.35, 65.75]] }, // Тюмень
+  { id: "26", bounds: [[43.40, 39.50], [43.80, 39.95]] }, // Сочи
+  { id: "25", bounds: [[52.15, 104.10], [52.40, 104.45]] }, // Иркутск
+  { id: "24", bounds: [[44.50, 33.30], [44.75, 33.75]] }, // Севастополь
+  { id: "23", bounds: [[44.95, 38.80], [45.15, 39.15]] }, // Краснодар
+  { id: "22", bounds: [[51.65, 54.90], [51.90, 55.30]] }, // Оренбург
+  { id: "21", bounds: [[58.40, 31.10], [58.65, 31.45]] }, // Великий Новгород
+  { id: "20", bounds: [[55.40, 36.90], [56.10, 38.35]] }, // Москва
+  { id: "19", bounds: [[55.05, 61.20], [55.25, 61.60]] }, // Челябинск
+  { id: "18", bounds: [[56.20, 43.80], [56.45, 44.20]] }, // Нижний Новгород
+  { id: "17", bounds: [[54.85, 82.75], [55.15, 83.15]] }, // Новосибирск
+  { id: "16", bounds: [[57.90, 56.05], [58.15, 56.40]] }, // Пермь
+  { id: "15", bounds: [[48.55, 44.30], [48.85, 44.75]] }, // Волгоград
+  { id: "14", bounds: [[48.35, 134.90], [48.60, 135.20]] }, // Хабаровск
+  { id: "13", bounds: [[56.70, 60.40], [56.95, 60.80]] }, // Екатеринбург
+  { id: "12", bounds: [[53.35, 49.25], [53.65, 49.60]] }, // Тольятти
+  { id: "11", bounds: [[51.50, 39.00], [51.75, 39.40]] }, // Воронеж
+  { id: "10", bounds: [[54.60, 55.80], [54.85, 56.10]] }, // Уфа
+  { id: "9", bounds: [[55.25, 85.95], [55.45, 86.20]] }, // Кемерово
+  { id: "8", bounds: [[55.70, 48.95], [55.90, 49.25]] }, // Казань
+  { id: "7", bounds: [[43.00, 131.75], [43.25, 132.00]] }, // Владивосток
+  { id: "6", bounds: [[54.85, 73.20], [55.15, 73.50]] }, // Омск
+  { id: "5", bounds: [[47.10, 39.50], [47.35, 39.90]] }, // Ростов-на Дону
+  { id: "4", bounds: [[59.70, 29.80], [60.15, 30.85]] }, // Санкт-Петербург
+];
 
 
 
@@ -123,7 +177,8 @@ const cities: City[] = [
 
 export default function CustomMapWrapper() {
   const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
-  
+  const [pointValid, setPointValid] = useState(true);
+
   const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
   const [startPoint, setStartPoint] = useState<Point | null>(null);
   const [endPoint, setEndPoint] = useState<Point | null>(null);
@@ -232,7 +287,7 @@ export default function CustomMapWrapper() {
             }
             allertedUser = true;
             return null;
-            
+
           } else {
 
             if (tariff.name != 'Оптимал') {
@@ -291,17 +346,17 @@ export default function CustomMapWrapper() {
       const city = cities.find(c => c.id === cityId);
       if (city) {
           setSelectedCity(city);
-          // console.log('select new city', city.name, city.coords)
+          
           // Если карта уже загружена, меняем центр
           if (mapRef.current) {
-              mapRef.current.flyTo(city.coords, 15);
+              mapRef.current.panTo(city.coords, 15);
           }
       }
   };
 
   // Обработчик выбора точки
   const handleSetPoint = (point: Point, addr: string) => {
-    
+    console.log(point)
     if (step === 'start') {
       setStartPoint(point);
       setStartAddress(addr);
@@ -523,6 +578,9 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
           onMapMove={handleMapMove}
           onMapLoad={handleMapLoad}
           routeNodes={routeNodes} // Передаем точки маршрута
+          selectedCityId={selectedCity.id}
+          citiesBounds={citiesBounds}
+          onPointValidation={setPointValid}
         />
       </MapContainer>
     
