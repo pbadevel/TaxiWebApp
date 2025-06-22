@@ -205,52 +205,66 @@ export default function CustomMapWrapper() {
       
       selectedCity.tariffs?.forEach(async (tariff) => {
         const response = await getDistanceTariff(selectedCity.id, tariff.tariffId, points);
-        if (allertedUser) {
-          return null;
-        }
-        
-        // Извлекаем данные из ответа
-        const { fix_price, nodes } = response;
-        
-        // Сохраняем точки маршрута
-        if (nodes && nodes.length > 0) {
-          setRouteNodes(nodes);
-        }
-
-        if (fix_price === '0' && !allertedUser) {
-          try{
-            tg.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
-          } catch (err) {
-            alert("Слишком маленькая дистанция, попробуйте еще раз.")
-            console.log('Too small distanse')
-          } finally {
-            setShowTariff(false);
-            resetPoints();
-            setRouteNodes([]);
+        if (tariff.name != 'Оптимал') {
+          
+          if (allertedUser) {
+            return null;
           }
-          allertedUser = true;
-          return null;
-        } else {
-
-          tariffs.push(
-            {
-              id: tariff.tariffId,
-              name: tariff.name,
-              icon: cars[i],
-              price: parseInt(fix_price) || 0,
-              time: getEstimatedTime(response.distance),
-              distance: (response.distance as unknown as string) + " км" || '0 км'
-            },
-          )
+          
+          // Извлекаем данные из ответа
+          const { fix_price, nodes } = response;
+          
+          // Сохраняем точки маршрута
+          if (nodes && nodes.length > 0) {
+            setRouteNodes(nodes);
+          }
   
-          i++;
+          if (response.distance === 0 && !allertedUser) {
+            try{
+              tg.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
+            } catch (err) {
+              alert("Слишком маленькая дистанция, попробуйте еще раз.")
+              console.log('Too small distanse')
+            } finally {
+              setShowTariff(false);
+              resetPoints();
+              setRouteNodes([]);
+            }
+            allertedUser = true;
+            return null;
+            
+          } else {
+
+            if (tariff.name != 'Оптимал') {
+              tariffs.push(
+                {
+                  id: tariff.tariffId,
+                  name: tariff.name,
+                  icon: cars[i],
+                  price: parseInt(fix_price) || 0,
+                  time: getEstimatedTime(response.distance),
+                  distance: (response.distance as unknown as string) + " км" || '0 км'
+                },
+              )
+      
+              i++;
+            }
+  
+          }
+          
         }
-        
       })
+
+      console.log(tariffs)
       
       if (!allertedUser) {
+
+        
+          
         setCalculatedTariffs(tariffs);
         setShowTariff(true);
+      
+      
       } else {
         setShowTariff(false);
       }

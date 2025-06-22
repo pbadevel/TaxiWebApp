@@ -38,7 +38,7 @@ export default function TariffSelection({
   onOrder,
   tariffs
 }: TariffSelectionProps) {
-  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0]?.id || 0);
+  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0]?.id || 2);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
 
@@ -69,7 +69,10 @@ export default function TariffSelection({
 
   // Заранее выбираем тариф
   useEffect(() => {
+    console.log(tariffs.length)
+
     if (tariffs.length > 0) {
+      console.log('ok', tariffs.length)
       setSelectedTariff(tariffs[0].id);
     }
   }, [tariffs]);
@@ -85,6 +88,7 @@ export default function TariffSelection({
     if (!selectedTariffData) return '0';
     
     let total = selectedTariffData.price;
+    console.log(total)
     
     specialRequests.forEach(requestId => {
       const option = specialOptions.find(opt => opt.id === requestId);
@@ -175,7 +179,7 @@ export default function TariffSelection({
           </div>
         ))}
       </div>
-
+      
       {/* Способ оплаты */}
       <div className={styles.paymentContainer}>
         <div className={styles.sectionTitle}>Способ оплаты</div>
@@ -216,7 +220,7 @@ export default function TariffSelection({
       <div className={styles.finalPriceContainer}>
         <div className={styles.finalPriceLabel}>Итоговая стоимость:</div>
         <div className={styles.finalPriceValue}>
-          {finalPrice as unknown as number > 0 ? `${finalPrice}₽` : 'Выберите тариф...'}
+          {finalPrice as unknown as number > 0 ? `${finalPrice}₽` : <p onClick={()=>{alert("Если список пуст, значит в вашем городе нет доступных тарифов")}} style={{ textDecorationLine: "underline" }}>Выберите тариф</p>}
         </div>
       </div>
 
