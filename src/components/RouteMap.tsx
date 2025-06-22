@@ -260,7 +260,7 @@ interface RouteMapProps {
   routeNodes?: RouteNode[]; // Добавим пропс для точек маршрута
   selectedCityId: string | null;
   citiesBounds: CityBounds[]; // Передаем границы городов
-  onPointValidation?: (isValid: boolean) => void; // Колбэк для валидации точки
+  onPointValidation: (isValid: boolean) => void; // Колбэк для валидации точки
 }
 
 
