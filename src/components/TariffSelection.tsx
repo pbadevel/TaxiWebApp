@@ -230,7 +230,7 @@ export default function TariffSelection({
         onClick={handleOrder}
         disabled={finalPrice as unknown as number <= 0}
       >
-        {finalPrice as unknown as number > 0 ? `Заказать такси за ${finalPrice}₽` : 'Рассчитывается...'}
+        {finalPrice as unknown as number > 0 ? `Продолжить в Telegram` : 'Рассчитывается...'}
       </button>
     </div>
   );
