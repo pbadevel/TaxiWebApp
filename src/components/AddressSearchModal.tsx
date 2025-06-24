@@ -71,6 +71,7 @@ export default function AddressSearchModal({
         url.searchParams.append("addressdetails", "1");
         url.searchParams.append("limit", "15");
         url.searchParams.append("featuretype", "settlement"); // Основной фильтр для адресов
+        url.searchParams.append("namedetails", "1");
         url.searchParams.append("dedupe", query.length > 2 ? "0" : "1"); // Отключаем дедупликацию для большего кол-ва результатов
         url.searchParams.append("polygon_threshold", "0.0"); // Точное соответствие границам
 
