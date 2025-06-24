@@ -61,15 +61,43 @@ export default function AddressSearchModal({
         url.searchParams.append("bounded", "1"); // Строгая фильтрация внутри границ
         url.searchParams.append("q", query);
         url.searchParams.append("addressdetails", "1");
-        url.searchParams.append("limit", "5");
+        url.searchParams.append("limit", "15");
+        url.searchParams.append("featuretype", "settlement"); // Основной фильтр для адресов
         url.searchParams.append("dedupe", query.length > 2 ? "0" : "1"); // Отключаем дедупликацию для большего кол-ва результатов
         url.searchParams.append("polygon_threshold", "0.0"); // Точное соответствие границам
 
         const response = await fetch(url);
-                
+
         if (response.ok) {
-          const data = await response.json();
-          setResults(data);
+
+          const results = await response.json();
+
+          // Фильтрация результатов: оставляем только адреса
+          const addressResults = results.filter(item => {
+            const isAddress = 
+              // Типы, связанные с улицами и домами
+              item.type === "street" ||
+              item.type === "house" ||
+              item.type === "residential" ||
+              item.type === "road" ||
+              
+              // Типы административных единиц
+              item.type === "city" ||
+              item.type === "town" ||
+              item.type === "village" ||
+              item.type === "hamlet" ||
+              
+              // Классы, связанные с адресами
+              item.class === "highway" ||
+              item.class === "place" ||
+              item.class === "building";
+            
+            return isAddress;
+          });
+                  
+          // const data = await response.json();
+          const finalResults = addressResults.slice(0, 7);
+          setResults(finalResults);
         } else {
           setResults([]);
         }
