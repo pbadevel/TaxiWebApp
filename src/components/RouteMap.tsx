@@ -9,11 +9,12 @@ import GeoLocationButton from './AutoLocation';
 
 import L, { PointTuple, LatLngExpression} from 'leaflet';
 import { useEffect } from 'react';
+import { unauthorized } from 'next/navigation';
 
 
 // Типы для пропсов
 interface LocationMarkerProps {
-  position: L.LatLngExpression | null;
+  position: { lat: number; lng: number } | null;
   type: 'start' | 'end';
 }
 
@@ -305,8 +306,8 @@ export default function RouteMap({
         onPointValidation={onPointValidation}
       />
       
-      <LocationMarker position={startPoint} type="start" />
-      <LocationMarker position={endPoint} type="end" />
+      <LocationMarker position={step === 'end' || step === 'tarif' ? startPoint: null} type="start" />
+      <LocationMarker position={step === 'tarif' ? endPoint : null} type="end" />
 
       {/* Добавляем кнопку геолокации */}
       <GeoLocationButton onLocationFound={handleLocationFound} />
