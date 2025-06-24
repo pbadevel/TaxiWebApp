@@ -10,6 +10,14 @@ interface AddressResult {
 }
 
 
+interface NominatimResult {
+  type: string;
+  class: string;
+  display_name: string;
+  address: any;
+}
+
+
 interface AddressSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -71,28 +79,22 @@ export default function AddressSearchModal({
         if (response.ok) {
 
           const results = await response.json();
-
+          
           // Фильтрация результатов: оставляем только адреса
-          const addressResults = results.filter(item => {
-            const isAddress = 
-              // Типы, связанные с улицами и домами
+          const addressResults = results.filter((item: NominatimResult) => {
+            return (
               item.type === "street" ||
               item.type === "house" ||
               item.type === "residential" ||
               item.type === "road" ||
-              
-              // Типы административных единиц
               item.type === "city" ||
               item.type === "town" ||
               item.type === "village" ||
               item.type === "hamlet" ||
-              
-              // Классы, связанные с адресами
               item.class === "highway" ||
               item.class === "place" ||
-              item.class === "building";
-            
-            return isAddress;
+              item.class === "building"
+            );
           });
                   
           // const data = await response.json();
