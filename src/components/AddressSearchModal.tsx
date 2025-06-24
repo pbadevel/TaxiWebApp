@@ -62,7 +62,7 @@ export default function AddressSearchModal({
         url.searchParams.append("q", query);
         url.searchParams.append("addressdetails", "1");
         url.searchParams.append("limit", "5");
-        url.searchParams.append("dedupe", "0"); // Отключаем дедупликацию для большего кол-ва результатов
+        query.length > 2 ? url.searchParams.append("dedupe", "0") : null; // Отключаем дедупликацию для большего кол-ва результатов
         url.searchParams.append("polygon_threshold", "0.0"); // Точное соответствие границам
 
         const response = await fetch(url);
