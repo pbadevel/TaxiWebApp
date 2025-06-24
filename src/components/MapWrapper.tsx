@@ -393,7 +393,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
       
       // Центрируем карту на выбранном адресе
       if (mapRef.current) {
-      mapRef.current.FlyTo([coords.lat, coords.lng], 15);
+      mapRef.current.flyTo([coords.lat, coords.lng], 15);
       }
   };
 
