@@ -9,12 +9,15 @@ interface AddressResult {
   lon: string;
 }
 
-
 interface NominatimResult {
+  display_name: string;
   type: string;
   class: string;
-  display_name: string;
-  address: any;
+  address?: {
+    road?: string;
+    suburb?: string;
+    city?: string;
+  };
 }
 
 
@@ -59,48 +62,68 @@ export default function AddressSearchModal({
       setIsLoading(true);
       try {
         const TrueCityBounds = currentCityBounds || [[29.80, 59.70], [30.85, 60.15]];
-
         // Правильный порядок для viewbox:
         const bounds = `${TrueCityBounds[0][1]},${TrueCityBounds[1][0]},${TrueCityBounds[1][1]},${TrueCityBounds[0][0]}`;
+        
+        
         const url = new URL("https://nominatim.openstreetmap.org/search");
         url.searchParams.append("format", "json");
         url.searchParams.append("countrycodes", "ru");
         url.searchParams.append("viewbox", bounds);
-        url.searchParams.append("bounded", "1"); // Строгая фильтрация внутри границ
+        url.searchParams.append("bounded", "1");
         url.searchParams.append("q", query);
         url.searchParams.append("addressdetails", "1");
-        url.searchParams.append("limit", "15");
-        url.searchParams.append("featuretype", "settlement"); // Основной фильтр для адресов
-        url.searchParams.append("namedetails", "1");
-        url.searchParams.append("dedupe", query.length > 2 ? "0" : "1"); // Отключаем дедупликацию для большего кол-ва результатов
-        url.searchParams.append("polygon_threshold", "0.0"); // Точное соответствие границам
+        url.searchParams.append("limit", "20"); // Увеличиваем лимит для последующей фильтрации
+        url.searchParams.append("featuretype", "street"); // Фокусируемся на улицах
+        url.searchParams.append("dedupe", "0");
 
-        const response = await fetch(url);
+        const response = await fetch(url, {
+          headers: {
+            "Accept-Language": "ru"
+          }
+        });
 
+        
+
+        
+        
+        
         if (response.ok) {
-
-          const results = await response.json();
           
-          // Фильтрация результатов: оставляем только адреса
-          const addressResults = results.filter((item: NominatimResult) => {
-            return (
-              item.type === "street" ||
-              item.type === "house" ||
-              item.type === "residential" ||
-              item.type === "road" ||
-              item.type === "city" ||
-              item.type === "town" ||
-              item.type === "village" ||
-              item.type === "hamlet" ||
-              item.class === "highway" ||
-              item.class === "place" ||
-              item.class === "building"
-            );
-          });
-                  
-          // const data = await response.json();
-          const finalResults = addressResults.slice(0, 7);
-          setResults(finalResults);
+          const results = await response.json();
+        
+            // Фильтрация для точного соответствия началу слова
+          const filteredResults = results.filter((item: NominatimResult) => {
+            // Основные типы адресных объектов
+            const isAddressType = [
+              'street', 'road', 'residential', 'pedestrian',
+              'footway', 'trunk', 'primary', 'secondary'
+            ].includes(item.type);
+            
+            // Основные классы адресных объектов
+            const isAddressClass = [
+              'highway', 'place', 'building'
+            ].includes(item.class);
+            
+            // Если не адресный объект - пропускаем
+            if (!(isAddressType || isAddressClass)) return false;
+            
+            // Получаем основное название объекта
+            const mainName = (
+              item.address?.road ||        // Для улиц
+              item.address?.suburb ||     // Для районов
+              item.display_name           // Фолбек
+            ).toLowerCase();
+            
+            // Проверяем совпадение с началом слова
+            const queryLower = query.toLowerCase();
+            const words = mainName.split(/\s+/);
+            
+            // Ищем слово, начинающееся с запроса
+            return words.some(word => word.startsWith(queryLower));
+          }).slice(0, 5); // Берем первые 5 результатов
+        
+        setResults(filteredResults);
         } else {
           setResults([]);
         }
