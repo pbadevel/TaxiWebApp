@@ -437,7 +437,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
     if (tg) {
       try {
         tg.sendData(JSON.stringify(orderData));
-        tg.showAlert('Заказ успешно оформлен!', () => {
+        tg.showAlert('Продолжите оформление заказа в телеграмме!', () => {
           tg.close();
         });
       } catch (error) {
