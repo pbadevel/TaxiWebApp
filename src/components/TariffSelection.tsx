@@ -38,7 +38,7 @@ export default function TariffSelection({
   onOrder,
   tariffs
 }: TariffSelectionProps) {
-  const [selectedTariff, setSelectedTariff] = useState<number>(tariffs[0]?.id || 2);
+  const [selectedTariff, setSelectedTariff] = useState<number>(-1);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
 
@@ -67,15 +67,6 @@ export default function TariffSelection({
     { id: '5', name: 'Помощь с передвижением тяжелого/габаритного багажа', price: 100 }
   ];
 
-  // Заранее выбираем тариф
-  useEffect(() => {
-    console.log(tariffs.length)
-
-    if (tariffs.length > 0) {
-      console.log('ok', tariffs.length)
-      setSelectedTariff(tariffs[0].id);
-    }
-  }, [tariffs]);
 
   // Находим выбранный тариф
   const selectedTariffData = useMemo(() => 

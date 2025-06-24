@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+
 import styles from '../styles/addressSearch.module.css';
 
 interface AddressResult {
@@ -8,12 +9,14 @@ interface AddressResult {
   lon: string;
 }
 
+
 interface AddressSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectAddress: (coords: { lat: number; lng: number }) => void;
   addressType: 'start' | 'end' | "tarif";
-  currentAddress: string
+  currentAddress: string,
+  currentCityBounds?: [[number, number], [number, number]]
 }
 
 export default function AddressSearchModal({ 
@@ -21,8 +24,10 @@ export default function AddressSearchModal({
   onClose, 
   onSelectAddress,
   addressType,
-  currentAddress
+  currentAddress,
+  currentCityBounds
 }: AddressSearchModalProps) {
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(currentAddress);
   const [results, setResults] = useState<AddressResult[]>([]);
@@ -45,8 +50,10 @@ export default function AddressSearchModal({
     const searchTimeout = setTimeout(async () => {
       setIsLoading(true);
       try {
+        const TrueCityBounds = currentCityBounds ? currentCityBounds : [[29.80,59.70],[30.85,60.15]]
+        const bounds = `${TrueCityBounds[0][1]},${TrueCityBounds[0][0]},${TrueCityBounds[1][1]},${TrueCityBounds[1][0]}`
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`
+          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ru&viewbox=${bounds}&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`
         );
         
         if (response.ok) {

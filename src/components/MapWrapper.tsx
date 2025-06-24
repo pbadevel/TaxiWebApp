@@ -554,6 +554,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
         onSelectAddress={handleAddressSelect}
         addressType={currentAddressType}
         currentAddress={address}
+        currentCityBounds={citiesBounds.find(c => c.id === selectedCity.id)?.bounds}
       />
     )}
   

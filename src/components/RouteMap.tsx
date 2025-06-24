@@ -4,7 +4,6 @@ import { useState, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
-import styles from './RouteMap.module.css';
 
 import GeoLocationButton from './AutoLocation';
 
