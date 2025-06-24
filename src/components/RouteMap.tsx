@@ -9,7 +9,6 @@ import GeoLocationButton from './AutoLocation';
 
 import L, { PointTuple, LatLngExpression} from 'leaflet';
 import { useEffect } from 'react';
-import { unauthorized } from 'next/navigation';
 
 
 // Типы для пропсов

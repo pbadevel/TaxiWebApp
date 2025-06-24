@@ -52,13 +52,20 @@ export default function AddressSearchModal({
       try {
         const TrueCityBounds = currentCityBounds || [[29.80, 59.70], [30.85, 60.15]];
 
-        // Правильный порядок для viewbox: 
-        //   min_lon (запад), max_lat (север), max_lon (восток), min_lat (юг)
+        // Правильный порядок для viewbox:
         const bounds = `${TrueCityBounds[0][1]},${TrueCityBounds[1][0]},${TrueCityBounds[1][1]},${TrueCityBounds[0][0]}`;
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.append("format", "json");
+        url.searchParams.append("countrycodes", "ru");
+        url.searchParams.append("viewbox", bounds);
+        url.searchParams.append("bounded", "1"); // Строгая фильтрация внутри границ
+        url.searchParams.append("q", query);
+        url.searchParams.append("addressdetails", "1");
+        url.searchParams.append("limit", "5");
+        url.searchParams.append("dedupe", "0"); // Отключаем дедупликацию для большего кол-ва результатов
+        url.searchParams.append("polygon_threshold", "0.0"); // Точное соответствие границам
 
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ru&viewbox=${bounds}&bounded=1&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`
-        );
+        const response = await fetch(url);
                 
         if (response.ok) {
           const data = await response.json();
