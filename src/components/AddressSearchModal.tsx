@@ -50,12 +50,16 @@ export default function AddressSearchModal({
     const searchTimeout = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const TrueCityBounds = currentCityBounds ? currentCityBounds : [[29.80,59.70],[30.85,60.15]]
-        const bounds = `${TrueCityBounds[0][1]},${TrueCityBounds[0][0]},${TrueCityBounds[1][1]},${TrueCityBounds[1][0]}`
+        const TrueCityBounds = currentCityBounds || [[29.80, 59.70], [30.85, 60.15]];
+
+        // Правильный порядок для viewbox: 
+        //   min_lon (запад), max_lat (север), max_lon (восток), min_lat (юг)
+        const bounds = `${TrueCityBounds[0][0]},${TrueCityBounds[1][1]},${TrueCityBounds[1][0]},${TrueCityBounds[0][1]}`;
+
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ru&viewbox=${bounds}&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`
+          `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ru&viewbox=${bounds}&bounded=1&q=${encodeURIComponent(query)}&addressdetails=1&limit=5`
         );
-        
+                
         if (response.ok) {
           const data = await response.json();
           setResults(data);
