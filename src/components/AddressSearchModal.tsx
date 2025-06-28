@@ -71,11 +71,12 @@ export default function AddressSearchModal({
         url.searchParams.append("countrycodes", "ru");
         url.searchParams.append("viewbox", bounds);
         url.searchParams.append("bounded", "1");
-        url.searchParams.append("q", query);
+        url.searchParams.append("q", query); // Используем оригинальный запрос
         url.searchParams.append("addressdetails", "1");
-        url.searchParams.append("limit", "20"); // Увеличиваем лимит для последующей фильтрации
-        // url.searchParams.append("featuretype", "street"); // Фокусируемся на улицах
-        url.searchParams.append("dedupe", "0");
+        url.searchParams.append("limit", "20");
+        url.searchParams.append("dedupe", "1"); // Убираем дубликаты
+        url.searchParams.append("polygon_threshold", "0.001"); // Точность геометрии
+
 
         const response = await fetch(url, {
           headers: {
@@ -86,40 +87,16 @@ export default function AddressSearchModal({
         
         if (response.ok) {
           
-          const results = await response.json();
-        
-            // Фильтрация для точного соответствия началу слова
-          const filteredResults = results.filter((item: NominatimResult) => {
-            // Основные типы адресных объектов
-            const isAddressType = [
-              'street', 'road', 'residential', 'pedestrian',
-              'footway', 'trunk', 'primary', 'secondary'
-            ].includes(item.type);
-            
-            // Основные классы адресных объектов
-            const isAddressClass = [
-              'highway', 'place', 'building'
-            ].includes(item.class);
-            
-            // Если не адресный объект - пропускаем
-            if (!(isAddressType || isAddressClass)) return false;
-            
-            // Получаем основное название объекта
-            const mainName = (
-              item.address?.road ||        // Для улиц
-              item.address?.suburb ||     // Для районов
-              item.display_name           // Фолбек
-            ).toLowerCase();
-            
-            // Проверяем совпадение с началом слова
-            // const queryLower = query.toLowerCase();
-            // const words = mainName.split(/\s+/);
-            
-            // Ищем слово, начинающееся с запроса
-            // return words.some(word => word.startsWith(queryLower));
-          }).slice(0, 5); // Берем первые 5 результатов
-        
-        setResults(filteredResults);
+          let results = await response.json();
+          // Фильтруем только релевантные типы объектов
+          results = results.filter((item: any) => 
+            ['highway', 'building', 'amenity', 'place'].includes(item.category)
+          );
+          
+          // Сортируем по важности (числовая сортировка!)
+          results.sort((a: any, b: any) => b.importance - a.importance);
+          console.log(results);
+          setResults(results);
         } else {
           setResults([]);
         }
