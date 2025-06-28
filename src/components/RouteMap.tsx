@@ -40,40 +40,44 @@ const MapHandler = ({
   selectedCityId,
   citiesBounds,
   onPointValidation
-  }: { 
-    step: 'start' | 'end' | 'tarif'; 
-    onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
-    onMapMove: (point: { lat: number; lng: number }, address: string) => void;
-    selectedCityId: string | null;
-    citiesBounds: CityBounds[]; // Передаем границы городов
-    onPointValidation: (isValid: boolean) => void; // Колбэк для валидации точки
-  }) => {
-    const map = useMap();
-    const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
-    const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+}: { 
+  step: 'start' | 'end' | 'tarif'; 
+  onSetPoint: (point: { lat: number; lng: number }, address: string) => void;
+  onMapMove: (point: { lat: number; lng: number }, address: string) => void;
+  selectedCityId: string | null;
+  citiesBounds: CityBounds[];
+  onPointValidation: (isValid: boolean) => void;
+}) => {
+  const map = useMap();
+  const [lastPoint, setLastPoint] = useState<L.LatLng | null>(null);
+  const moveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const currentCityBounds = useRef<CityBounds | null>(null);
 
-    const baseApiPath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  // Обновляем границы при изменении города
+  useEffect(() => {
+    if (selectedCityId) {
+      currentCityBounds.current = citiesBounds.find(c => c.id === selectedCityId) || null;
+    }
+  }, [selectedCityId, citiesBounds]);
 
-    const checkPointInCity = (lat: number, lng: number): boolean => {
-      if (!selectedCityId) return true;
-      
-      const city = citiesBounds.find(c => c.id === selectedCityId);
-      if (!city) return true;
-
-      const [[swLat, swLon], [neLat, neLon]] = city.bounds;
-      return (
-        lat >= swLat &&
-        lat <= neLat &&
-        lng >= swLon &&
-        lng <= neLon
-      );
-    };
+  const checkPointInCity = (lat: number, lng: number): boolean => {
+    if (!currentCityBounds.current) return true;
+    
+    const [[swLat, swLon], [neLat, neLon]] = currentCityBounds.current.bounds;
+    return (
+      lat >= swLat &&
+      lat <= neLat &&
+      lng >= swLon &&
+      lng <= neLon
+    );
+  };
 
 
 
     // update address name
     const updateAddress = async (lat: number, lng: number, isClick: boolean = false) => {
       const isValid = checkPointInCity(lat, lng);
+      console.log("point is valid:", isValid, 'lat/lng', lat, lng)
       onPointValidation(isValid);
 
       if (!isValid && isClick) {

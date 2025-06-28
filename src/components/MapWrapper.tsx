@@ -5,7 +5,7 @@ import styles from '../styles/page.module.css';
 
 import AddressSearchModal from './AddressSearchModal'; // Новый компонент
 import TariffSelection from './TariffSelection'; // Новый компонент
-// import RouteMap from './RouteMap';
+import { updateCitiesWithTariffs } from '@/utils/updateCitiesWithTariffs';
 
 import { getDistanceTariff } from '@/utils/tariffCalculator';
 import shuffleArray from '@/utils/Shuffle';
@@ -35,8 +35,10 @@ interface City {
   id: string;
   name: string;
   coords: [number, number];
-  tariffs?: TariffOption[]; // Массив тарифов (может быть несколько)
+  operatorUnitId?: string; // Новое поле для ID из API
+  tariffs?: TariffOption[];
 }
+
 
 declare global {
   interface Window {
@@ -63,12 +65,25 @@ interface CityBounds {
   id: string;
   bounds: [[number, number], [number, number]]; // [SW, NE]
 }
+interface ApiTariff {
+  id: string;
+  title: string;
+  // Добавьте другие поля из ответа API при необходимости
+}
+interface ApiUnit {
+  id: string;
+  title: string;
+  tarifs: ApiTariff[];
+}
+interface ApiTariffsResponse {
+  result: string;
+  error: string;
+  units: ApiUnit[];
+}
 
 
-
-
-const cities: City[] = [
-  { id: "53", name: "Симферополь", coords: [44.95212, 34.10242], tariffs: [{tariffId: 147, name:"Эконом"}, {tariffId: 148, name:"Комфорт"}, {tariffId: 149, name:"Комфорт+"}, {tariffId: 150, name:"Минивэн"}]},
+const initialCities: City[] = [
+  { id: "53", name: "Симферополь", coords: [44.95212, 34.10242], tariffs: [{tariffId: 147, name:"Эконом"}, ]},
   { id: "52", name: "Красноярск", coords: [56.0153, 92.8932], tariffs: [{tariffId: 57, name:"Эконом"}, {tariffId: 123, name:"Комфорт"}, {tariffId: 124, name:"Комфорт+"}, {tariffId: 125, name:"Минивэн"}]},
   { id: "51", name: "Белгород", coords: [50.595, 36.5873], tariffs: [{tariffId: 56, name:"Эконом"}, {tariffId: 141, name:"Комфорт"}, {tariffId: 142, name:"Комфорт+"}, {tariffId: 143, name:"Минивэн"}]},
   { id: "50", name: "Пятигорск", coords: [44.0486, 43.0594], tariffs: [{tariffId: 55, name:"Эконом"}, {tariffId: 154, name:"Комфорт"}, {tariffId: 155, name:"Комфорт+"}, {tariffId: 156, name:"Минивэн"}]},
@@ -176,7 +191,9 @@ const citiesBounds: CityBounds[] = [
 
 
 export default function CustomMapWrapper() {
-  const [selectedCity, setSelectedCity] = useState<City>(cities.find(c => c.name === "Санкт-Петербург") || cities[0]);
+  const [cities, setCities] = useState<City[]>(initialCities);
+   const [selectedCityId, setSelectedCityId] = useState<string>(initialCities.find(c => c.name === "Санкт-Петербург")?.id || '4')
+  // const [selectedCity, setSelectedCity] = useState<City>(initialCities.find(c => c.name === "Санкт-Петербург") || initialCities[0]);
   const [pointValid, setPointValid] = useState(true);
 
   const [step, setStep] = useState<'start' | 'end' | 'tarif'>('start');
@@ -206,8 +223,24 @@ export default function CustomMapWrapper() {
   const [tg, setTg] = useState<any>(null);
 
 
+  const selectedCity = cities.find(city => city.id === selectedCityId) || cities[0];
+  
+
   useEffect(() => {
+    const fetchTariffs = async () => {
+      try {
+        const response = await fetch(basePath + '/api/tariffs');
+        const apiData: ApiTariffsResponse = await response.json();
+        const updatedCities = updateCitiesWithTariffs(initialCities, apiData);
+        setCities(updatedCities);
+      } catch (error) {
+        console.error('Ошибка при обновлении тарифов:', error);
+      }
+    };
+
+    fetchTariffs();
     initializeTelegram();
+    
   }, []);
 
   const initializeTelegram = useCallback(async () => {
@@ -313,12 +346,9 @@ export default function CustomMapWrapper() {
       console.log(tariffs)
       
       if (!allertedUser) {
-
-        
           
         setCalculatedTariffs(tariffs);
         setShowTariff(true);
-      
       
       } else {
         setShowTariff(false);
@@ -341,17 +371,14 @@ export default function CustomMapWrapper() {
   };
 
   // Обработчик смены города
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const cityId = e.target.value;
-      const city = cities.find(c => c.id === cityId);
-      if (city) {
-          setSelectedCity(city);
-          
-          // Если карта уже загружена, меняем центр
-          if (mapRef.current) {
-              mapRef.current.panTo(city.coords, 15);
-          }
-      }
+   const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    setSelectedCityId(cityId);
+    
+    const city = cities.find(c => c.id === cityId);
+    if (city && mapRef.current) {
+      mapRef.current.panTo(city.coords, 15);
+    }
   };
 
   // Обработчик выбора точки
@@ -465,19 +492,20 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
 
   return (
   <>
-    <div className={styles.cityPanel}>
+    {!showTariff && <div className={styles.cityPanel}>
       <select 
-        value={selectedCity.id} 
+        value={selectedCityId}
         onChange={handleCityChange}
         className={styles.citySelect}
       >
-        {cities.map(city => (
+        {[...cities].sort((a, b) => a.name.localeCompare(b.name)).map(city => (
           <option key={city.id} value={city.id}>
             {city.name}
           </option>
         ))}
       </select>
-    </div>
+    </div> 
+    }
 
     {/* Центральный маркер */}
     {!showTariff && step !== 'tarif'  && (
@@ -571,6 +599,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
         }}
       >
         <RouteMap 
+          key={selectedCity.id} // Добавляем ключ для принудительного обновления
           center={selectedCity.coords}
           startPoint={startPoint}
           endPoint={endPoint}
@@ -578,7 +607,7 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
           onSetPoint={handleSetPoint}
           onMapMove={handleMapMove}
           onMapLoad={handleMapLoad}
-          routeNodes={routeNodes} // Передаем точки маршрута
+          routeNodes={routeNodes} 
           selectedCityId={selectedCity.id}
           citiesBounds={citiesBounds}
           onPointValidation={setPointValid}

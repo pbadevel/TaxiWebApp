@@ -67,14 +67,14 @@ export default function AddressSearchModal({
         
         
         const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.append("format", "json");
+        url.searchParams.append("format", "jsonv2");
         url.searchParams.append("countrycodes", "ru");
         url.searchParams.append("viewbox", bounds);
         url.searchParams.append("bounded", "1");
         url.searchParams.append("q", query);
         url.searchParams.append("addressdetails", "1");
         url.searchParams.append("limit", "20"); // Увеличиваем лимит для последующей фильтрации
-        url.searchParams.append("featuretype", "street"); // Фокусируемся на улицах
+        // url.searchParams.append("featuretype", "street"); // Фокусируемся на улицах
         url.searchParams.append("dedupe", "0");
 
         const response = await fetch(url, {
@@ -82,10 +82,6 @@ export default function AddressSearchModal({
             "Accept-Language": "ru"
           }
         });
-
-        
-
-        
         
         
         if (response.ok) {
@@ -116,11 +112,11 @@ export default function AddressSearchModal({
             ).toLowerCase();
             
             // Проверяем совпадение с началом слова
-            const queryLower = query.toLowerCase();
-            const words = mainName.split(/\s+/);
+            // const queryLower = query.toLowerCase();
+            // const words = mainName.split(/\s+/);
             
             // Ищем слово, начинающееся с запроса
-            return words.some(word => word.startsWith(queryLower));
+            // return words.some(word => word.startsWith(queryLower));
           }).slice(0, 5); // Берем первые 5 результатов
         
         setResults(filteredResults);
