@@ -27,8 +27,33 @@ interface AddressSearchModalProps {
   onSelectAddress: (coords: { lat: number; lng: number }) => void;
   addressType: 'start' | 'end' | "tarif";
   currentAddress: string,
-  currentCityBounds?: [[number, number], [number, number]]
+  currentCityBounds?: [[number, number], [number, number]],
+  unitId: string
 }
+
+
+
+function parseAddressData(data: string): AddressResult[] {
+  return data
+    .split('\n')
+    .map(line => {
+      const parts = line.split('|');
+      
+      // Проверяем минимальное количество частей
+      if (parts.length < 5) return null;
+      
+      return {
+        display_name: parts[0],
+        lon: parts[3],
+        lat: parts[4]
+      };
+    })
+    .filter(Boolean) as AddressResult[]; // Фильтруем некорректные строки
+}
+
+
+
+
 
 export default function AddressSearchModal({ 
   isOpen, 
@@ -36,7 +61,8 @@ export default function AddressSearchModal({
   onSelectAddress,
   addressType,
   currentAddress,
-  currentCityBounds
+  currentCityBounds,
+  unitId
 }: AddressSearchModalProps) {
   
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,42 +87,32 @@ export default function AddressSearchModal({
     const searchTimeout = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const TrueCityBounds = currentCityBounds || [[29.80, 59.70], [30.85, 60.15]];
-        // Правильный порядок для viewbox:
-        const bounds = `${TrueCityBounds[0][1]},${TrueCityBounds[1][0]},${TrueCityBounds[1][1]},${TrueCityBounds[0][0]}`;
-        
-        
-        const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.append("format", "jsonv2");
-        url.searchParams.append("countrycodes", "ru");
-        url.searchParams.append("viewbox", bounds);
-        url.searchParams.append("bounded", "1");
-        url.searchParams.append("q", query); // Используем оригинальный запрос
-        url.searchParams.append("addressdetails", "1");
-        url.searchParams.append("limit", "20");
-        url.searchParams.append("dedupe", "1"); // Убираем дубликаты
-        url.searchParams.append("polygon_threshold", "0.001"); // Точность геометрии
+        const baseAddres = process.env.NEXT_PUBLIC_BASE_PATH;
 
 
-        const response = await fetch(url, {
+        const response = await fetch(`${baseAddres}/api/search-address`, {
+          method: 'POST',
           headers: {
-            "Accept-Language": "ru"
-          }
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            unitId,
+            query
+          }),
         });
-        
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+
         
         if (response.ok) {
+          const data = await response.json();
+            
+          const parsedData = parseAddressData(data['data'])
           
-          let results = await response.json();
-          // Фильтруем только релевантные типы объектов
-          results = results.filter((item: any) => 
-            ['highway', 'building', 'amenity', 'place'].includes(item.category)
-          );
-          
-          // Сортируем по важности (числовая сортировка!)
-          results.sort((a: any, b: any) => b.importance - a.importance);
-          console.log(results);
-          setResults(results);
+          // console.log(parsedData);
+          setResults(parsedData);
         } else {
           setResults([]);
         }

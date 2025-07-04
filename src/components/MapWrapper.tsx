@@ -577,12 +577,14 @@ const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
     {/* Модальное окно для поиска адреса */}
     {isAddressModalOpen && step != 'tarif' && (
       <AddressSearchModal
+        key={selectedCity.id}
         isOpen={isAddressModalOpen}
         onClose={() => setIsAddressModalOpen(false)}
         onSelectAddress={handleAddressSelect}
         addressType={currentAddressType}
         currentAddress={address}
         currentCityBounds={citiesBounds.find(c => c.id === selectedCity.id)?.bounds}
+        unitId={selectedCity.id}
       />
     )}
   
