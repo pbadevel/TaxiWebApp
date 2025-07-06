@@ -19,6 +19,7 @@ interface Tariff {
   time: string;
   icon: string;
   distance: string;
+  nodes: any
 }
 
 interface Point {
@@ -269,100 +270,98 @@ export default function CustomMapWrapper() {
     }
   }, [step]);
 
+  function sortTariffs(tariffs: Tariff[]): Tariff[] {
+  const priorityOrder = ["Эконом", "Комфорт", "Комфорт+", "Минивэн"];
+
+  return tariffs.slice().sort((a, b) => {
+    // Нормализуем названия для сравнения (удаляем лишние пробелы и символы)
+    const normalize = (name: string) => name.replace(/\s+/g, '');
+    
+    const aName = normalize(a.name);
+    const bName = normalize(b.name);
+    
+    const aIndex = priorityOrder.findIndex(p => normalize(p) === aName);
+    const bIndex = priorityOrder.findIndex(p => normalize(p) === bName);
+
+    if (aIndex === -1 && bIndex === -1) return 0;
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+}
+
+
   const calculatePrices = async () => {
-    if (!startPoint || !endPoint) return;
-    
-    setIsCalculating(true);
-    setRouteNodes([]); // Сбрасываем предыдущий маршрут
-    
-    const points: [number, number][] = [
-      [startPoint.lng, startPoint.lat],
-      [endPoint.lng, endPoint.lat]
-    ];
-    let allertedUser = false;
-
-    try {
-      const tariffs: Tariff[] = [];
-      
-      const cars = ['🚕', "🚗", "🏎", "🚕", "🚖", '🚘', '🚙'];
-
-
-      shuffleArray(cars);
-      
-      let i = 0;
-      
-      selectedCity.tariffs?.forEach(async (tariff) => {
-        const response = await getDistanceTariff(selectedCity.id, tariff.tariffId, points);
-        if (tariff.name != 'Оптимал') {
-          
-          if (allertedUser) {
-            return null;
-          }
-          
-          // Извлекаем данные из ответа
-          const { fix_price, nodes } = response;
-          
-          // Сохраняем точки маршрута
-          if (nodes && nodes.length > 0) {
-            setRouteNodes(nodes);
-          }
+  if (!startPoint || !endPoint) return;
   
-          if (response.distance === 0 && !allertedUser) {
-            try{
-              tg.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
-            } catch (err) {
-              alert("Слишком маленькая дистанция, попробуйте еще раз.")
-              console.log('Too small distanse')
-            } finally {
-              setShowTariff(false);
-              resetPoints();
-              setRouteNodes([]);
-            }
-            allertedUser = true;
-            return null;
-
-          } else {
-
-            if (tariff.name != 'Оптимал') {
-              tariffs.push(
-                {
-                  id: tariff.tariffId,
-                  name: tariff.name,
-                  icon: cars[i],
-                  price: parseInt(fix_price) || 0,
-                  time: getEstimatedTime(response.distance),
-                  distance: (response.distance as unknown as string) + " км" || '0 км'
-                },
-              )
-      
-              i++;
-            }
+  setIsCalculating(true);
+  setRouteNodes([]);
   
-          }
-          
-        }
-      })
+  const points: [number, number][] = [
+    [startPoint.lng, startPoint.lat],
+    [endPoint.lng, endPoint.lat]
+  ];
+  
+  try {
+    const cars = ['🚕', "🚗", "🏎", "🚕", "🚖", '🚘', '🚙'];
+    shuffleArray(cars);
+    
+    // Создаем промисы для всех тарифов
+    const tariffPromises = selectedCity.tariffs?.map((tariff, index) => 
+      getDistanceTariff(selectedCity.id, tariff.tariffId, points)
+        .then(response => ({
+          id: tariff.tariffId,
+          name: tariff.name,
+          icon: cars[index % cars.length],
+          price: parseInt(response.fix_price) || 0,
+          time: getEstimatedTime(response.distance),
+          distance: response.distance + " км" || '0 км',
+          nodes: response.nodes
+        }))
+        .catch(error => {
+          console.error(`Error for tariff ${tariff.name}:`, error);
+          return null;
+        })
+    ) || [];
 
-      console.log(tariffs)
-      
-      if (!allertedUser) {
-          
-        setCalculatedTariffs(tariffs);
-        setShowTariff(true);
-      
-      } else {
-        setShowTariff(false);
+    // Ждем выполнения всех промисов
+    const tariffResults = await Promise.all(tariffPromises);
+    
+    // Фильтруем успешные результаты
+    const validTariffs = tariffResults.filter(t => t !== null) as Tariff[];
+    
+    // Проверяем нулевую дистанцию
+    if (validTariffs.length > 0 && validTariffs[0].distance === "0 км") {
+      try {
+        tg?.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
+      } catch {
+        alert("Слишком маленькая дистанция, попробуйте еще раз.");
       }
-
-    } catch (error) {
-      console.error('Failed to calculate tariffs:', error);
-      setShowTariff(false)
-      alert('Ошибка расчета стоимости. Попробуйте снова.');
-      setStep('end');
-    } finally {
-      setIsCalculating(false);
+      setShowTariff(false);
+      resetPoints();
+      return;
     }
-  };
+    
+    // Устанавливаем маршрут
+    if (validTariffs.length > 0 && validTariffs[0].nodes) {
+      console.log(validTariffs[0].nodes)
+      setRouteNodes(validTariffs[0].nodes);
+    }
+    
+    // Сортируем тарифы
+    const sortedTariffs = sortTariffs(validTariffs);
+    setCalculatedTariffs(sortedTariffs);
+    setShowTariff(true);
+    
+  } catch (error) {
+    console.error('Failed to calculate tariffs:', error);
+    setShowTariff(false);
+    alert('Ошибка расчета стоимости. Попробуйте снова.');
+    setStep('end');
+  } finally {
+    setIsCalculating(false);
+  }
+};
 
   const getEstimatedTime = (distance: number) => {
     // Средняя скорость 50 км/ч + 5 минут на подачу

@@ -64,11 +64,12 @@ export function updateCitiesWithTariffs(
 }
 
 function normalizeTariffName(name: string): string {
-  const normalized = name.toLowerCase().replace('+', '');
+  const normalized = name.toLowerCase();
+
   const mapping: Record<string, string> = {
     'эконом': 'Эконом',
     'комфорт': 'Комфорт',
-    'комфорт ': 'Комфорт+', // Для случаев с лишним пробелом
+    'комфорт+': 'Комфорт +', // Для случаев с пробелом
     'минивэн': 'Минивэн',
     'оптимал': 'Оптимал'
   };
