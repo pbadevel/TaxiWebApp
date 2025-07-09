@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-
 import styles from '../styles/addressSearch.module.css';
 
 interface AddressResult {
@@ -8,18 +7,6 @@ interface AddressResult {
   lat: string;
   lon: string;
 }
-
-interface NominatimResult {
-  display_name: string;
-  type: string;
-  class: string;
-  address?: {
-    road?: string;
-    suburb?: string;
-    city?: string;
-  };
-}
-
 
 interface AddressSearchModalProps {
   isOpen: boolean;
@@ -31,15 +18,11 @@ interface AddressSearchModalProps {
   unitId: string
 }
 
-
-
 function parseAddressData(data: string): AddressResult[] {
   return data
     .split('\n')
     .map(line => {
       const parts = line.split('|');
-      
-      // Проверяем минимальное количество частей
       if (parts.length < 5) return null;
       
       return {
@@ -48,12 +31,8 @@ function parseAddressData(data: string): AddressResult[] {
         lat: parts[4]
       };
     })
-    .filter(Boolean) as AddressResult[]; // Фильтруем некорректные строки
+    .filter(Boolean) as AddressResult[];
 }
-
-
-
-
 
 export default function AddressSearchModal({ 
   isOpen, 
@@ -69,28 +48,39 @@ export default function AddressSearchModal({
   const [query, setQuery] = useState(currentAddress);
   const [results, setResults] = useState<AddressResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [selectedResult, setSelectedResult] = useState<AddressResult | null>(null);
+
+  // Сброс состояния при открытии
+  useEffect(() => {
+    if (isOpen) {
+      setQuery(currentAddress);
+      setSelectedResult(null);
+    }
+  }, [isOpen, currentAddress]);
+
   // Фокус на инпуте при открытии
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
-  
+
   // Поиск адресов с задержкой
   useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
+    if (!isOpen) return;
     
-    const searchTimeout = setTimeout(async () => {
+    const searchAddress = async () => {
       setIsLoading(true);
       try {
-        const baseAddres = process.env.NEXT_PUBLIC_BASE_PATH;
+        const baseAddress = process.env.NEXT_PUBLIC_BASE_PATH;
 
+        if (!query.trim()) {
+          setResults([]);
+          setIsLoading(false);
+          return;
+        }
 
-        const response = await fetch(`${baseAddres}/api/search-address`, {
+        const response = await fetch(`${baseAddress}/api/search-address`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -104,48 +94,56 @@ export default function AddressSearchModal({
         if (!response.ok) {
           throw new Error(`API request failed: ${response.status}`);
         }
-
         
-        if (response.ok) {
-          const data = await response.json();
-            
-          const parsedData = parseAddressData(data['data'])
-          
-          // console.log(parsedData);
-          setResults(parsedData);
-        } else {
-          setResults([]);
-        }
+        const data = await response.json();
+        const parsedData = parseAddressData(data['data']);
+        setResults(parsedData);
       } catch (error) {
         console.error('Ошибка поиска адреса:', error);
         setResults([]);
       } finally {
         setIsLoading(false);
       }
-    }, 500);
-    
+    };
+
+    const searchTimeout = setTimeout(searchAddress, 500);
     return () => clearTimeout(searchTimeout);
-  }, [query]);
-  
-  // Обработчик выбора адреса
-  const handleSelect = (result: AddressResult) => {
-    onSelectAddress({
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon)
-    });
+  }, [query, isOpen]);
+
+  // Обработчик выбора адреса из списка
+  const handleSelectResult = (result: AddressResult) => {
+    setQuery(result.display_name);
+    setSelectedResult(result);
   };
-  
+
+  // Подтвердить адрес
+  const handleConfirmAddress = () => {
+    if (selectedResult) {
+      onSelectAddress({
+        lat: parseFloat(selectedResult.lat),
+        lng: parseFloat(selectedResult.lon)
+      });
+    } else if (results.length > 0) {
+      // Если не выбрали конкретно, но есть результаты - берем первый
+      const firstResult = results[0];
+      onSelectAddress({
+        lat: parseFloat(firstResult.lat),
+        lng: parseFloat(firstResult.lon)
+      });
+    }
+  };
+
   if (!isOpen) return null;
-  
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-     
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-       <button className={styles.backButton} onClick={onClose}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-       </button>
+        <button className={styles.backButton} onClick={onClose}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        
         <h2 className={styles.modalTitle}>
           {addressType === 'start' ? 'Выберите место посадки' : 'Выберите место прибытия'}
         </h2>
@@ -155,7 +153,10 @@ export default function AddressSearchModal({
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setSelectedResult(null);
+            }}
             placeholder="Введите адрес..."
             className={styles.searchInput}
           />
@@ -172,15 +173,26 @@ export default function AddressSearchModal({
             results.map((result, index) => (
               <div 
                 key={index} 
-                className={styles.resultItem}
-                onClick={() => handleSelect(result)}
+                className={`${styles.resultItem} ${selectedResult === result ? styles.selectedItem : ''}`}
+                onClick={() => handleSelectResult(result)}
               >
-                {result.display_name.split(',').slice(0, 4).join(',')}
+                {result.display_name}
               </div>
             ))
           ) : query && !isLoading ? (
             <div className={styles.noResults}>Адресов не найдено</div>
           ) : null}
+        </div>
+        
+        {/* Кнопка "Далее" для подтверждения адреса */}
+        <div className={styles.nextButtonContainer}>
+          <button 
+            className={styles.nextButton}
+            onClick={handleConfirmAddress}
+            disabled={results.length === 0 && !selectedResult}
+          >
+            Далее
+          </button>
         </div>
       </div>
     </div>
