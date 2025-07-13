@@ -407,19 +407,25 @@ export default function CustomMapWrapper() {
   };
 
   // Обработчик открытия модального окна
-const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
+  const handleModalAddressClick = (type: 'start' | 'end' | 'tarif') => {
       setCurrentAddressType(type);
       setIsAddressModalOpen(true);
   };
 
   // Обработчик выбора адреса из модального окна
-  const handleAddressSelect = (coords: { lat: number; lng: number }) => {
+  const handleAddressSelect = (coords: { lat: number; lng: number }, CurrentAddress: string) => {
 
       setIsAddressModalOpen(false);
       
       // Центрируем карту на выбранном адресе
-      if (mapRef.current) {
+      if (mapRef.current && currentAddressType != 'end') {
       mapRef.current.flyTo([coords.lat, coords.lng], 16);
+      } else {
+        const point = {lat: coords.lat, lng: coords.lng} 
+        console.log("curr end addr:",CurrentAddress);
+        setEndAddress(CurrentAddress);
+        setEndPoint(point);
+        setStep('tarif');
       }
   };
 

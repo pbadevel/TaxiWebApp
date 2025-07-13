@@ -11,7 +11,7 @@ interface AddressResult {
 interface AddressSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectAddress: (coords: { lat: number; lng: number }) => void;
+  onSelectAddress: (coords: { lat: number; lng: number }, CurrentAddress: string) => void;
   addressType: 'start' | 'end' | "tarif";
   currentAddress: string,
   currentCityBounds?: [[number, number], [number, number]],
@@ -122,14 +122,14 @@ export default function AddressSearchModal({
       onSelectAddress({
         lat: parseFloat(selectedResult.lat),
         lng: parseFloat(selectedResult.lon)
-      });
+      }, selectedResult.display_name);
     } else if (results.length > 0) {
       // Если не выбрали конкретно, но есть результаты - берем первый
       const firstResult = results[0];
       onSelectAddress({
         lat: parseFloat(firstResult.lat),
         lng: parseFloat(firstResult.lon)
-      });
+      }, firstResult.display_name);
     }
   };
 
