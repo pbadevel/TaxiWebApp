@@ -1,6 +1,6 @@
 // components/TariffSelection.tsx
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import styles from '../styles/tarif.module.css';
 
 interface Tariff {
@@ -41,18 +41,20 @@ export default function TariffSelection({
   const [selectedTariff, setSelectedTariff] = useState<number>(-1);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash');
   const [specialRequests, setSpecialRequests] = useState<string[]>([]);
+  const [showAllOptions, setShowAllOptions] = useState(false); // Состояние для отображения всех опций
+  const optionsContainerRef = useRef<HTMLDivElement>(null); // Ref для прокрутки
 
     // Список дополнительных опций
   const specialOptions = [
+    { id: '2', name: 'Бустер (сидение для детей)', price: 0 },
+    { id: '3', name: 'Домашнее животное на руках', price: 50 },
+    { id: '7', name: 'Багаж в салон автомобиля', price: 50 },
+    { id: '6', name: 'Животное в переноске', price: 30 },
+    { id: '4', name: 'Курящий салон (эл. сигареты)', price: 30 },
     { id: '9', name: 'Надбавка водителю', price: 20 },
     { id: '10', name: 'Надбавка водителю', price: 50 },
     { id: '11', name: 'Надбавка водителю', price: 80 },
-    { id: '7', name: 'Багаж в салон автомобиля', price: 50 },
-    { id: '2', name: 'Бустер (сидение для детей)', price: 0 },
-    { id: '3', name: 'Домашнее животное на руках', price: 50 },
-    { id: '6', name: 'Животное в переноске', price: 30 },
     { id: '1', name: 'КУРЬЕРСКАЯ УСЛУГА', price: "20%" },
-    { id: '4', name: 'Курящий салон (эл. сигареты)', price: 30 },
     { id: '12', name: 'МИКРОАВТОБУС (5 пассажиров + БАГАЖ)', price: "40%" },
     { id: '21', name: 'Надбавка дл. расст. + плохие дороги', price: 3500 },
     { id: '17', name: 'Надбавка длинные расстояния', price: 300 },
@@ -67,6 +69,10 @@ export default function TariffSelection({
     { id: '5', name: 'Помощь с передвижением тяжелого/габаритного багажа', price: 100 }
   ];
 
+  // Функция для округления до ближайшего кратного 5
+  const roundToNearestFive = (num: number): number => {
+    return Math.ceil(num / 5) * 5;
+  };
 
   // Находим выбранный тариф
   const selectedTariffData = useMemo(() => 
@@ -79,7 +85,6 @@ export default function TariffSelection({
     if (!selectedTariffData) return '0';
     
     let total = selectedTariffData.price;
-    console.log(total)
     
     specialRequests.forEach(requestId => {
       const option = specialOptions.find(opt => opt.id === requestId);
@@ -105,7 +110,7 @@ export default function TariffSelection({
       }
     });
     
-    return total.toFixed(2);
+    return roundToNearestFive(total).toFixed(0);
   }, [selectedTariffData, specialRequests]);
 
   // Переключение дополнительных опций
@@ -122,6 +127,28 @@ export default function TariffSelection({
       onOrder(selectedTariff, paymentMethod, specialRequests, finalPrice);
     }
   };
+
+  // Обработчик для кнопки "Еще опции"
+  const toggleOptionsVisibility = () => {
+    setShowAllOptions(!showAllOptions);
+    
+    // Прокручиваем к концу списка при открытии
+    if (!showAllOptions && optionsContainerRef.current) {
+      setTimeout(() => {
+        if (optionsContainerRef.current) {
+          optionsContainerRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end'
+          });
+        }
+      }, 100);
+    }
+  };
+
+  const visibleOptions = showAllOptions 
+    ? specialOptions 
+    : specialOptions.slice(0, 4);
+
 
   return (
     <div className={styles.tariffContainer}>
@@ -190,11 +217,11 @@ export default function TariffSelection({
         </div>
       </div>
 
-      {/* Пожелания */}
+      {/* Пожелания с возможностью разворачивания */}
       <div className={styles.requestsContainer}>
         <div className={styles.sectionTitle}>Пожелания</div>
         <div className={styles.requestsGrid}>
-          {specialOptions.map(option => (
+          {visibleOptions.map(option => (
             <div 
               key={option.id}
               className={`${styles.requestOption} ${specialRequests.includes(option.id) ? styles.selectedRequest : ''}`}
@@ -205,6 +232,16 @@ export default function TariffSelection({
             </div>
           ))}
         </div>
+        
+        {/* Кнопка для разворачивания/сворачивания опций */}
+        {specialOptions.length > 4 && (
+          <button 
+            className={styles.toggleOptionsButton}
+            onClick={toggleOptionsVisibility}
+          >
+            {showAllOptions ? 'Свернуть опции' : 'Еще опции'}
+          </button>
+        )}
       </div>
 
       {/* Блок с итоговой ценой */}
