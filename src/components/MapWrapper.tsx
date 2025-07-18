@@ -326,17 +326,28 @@ export default function CustomMapWrapper() {
 
     // Ждем выполнения всех промисов
     const tariffResults = await Promise.all(tariffPromises);
-    
+    console.log(tariffResults)
     // Фильтруем успешные результаты
-    const validTariffs = tariffResults.filter(t => t !== null) as Tariff[];
+    const validTariffs = tariffResults.filter(t => t !== null && (t.name != "Оптимал")) as Tariff[];
     
     // Проверяем нулевую дистанцию
-    if (validTariffs.length > 0 && validTariffs[0].distance === "0 км") {
-      try {
-        tg?.showAlert('Слишком маленькая дистанция, попробуйте еще раз.', () => {});
-      } catch {
-        alert("Слишком маленькая дистанция, попробуйте еще раз.");
+    if (validTariffs.length > 0) {
+      console.log(validTariffs.length, validTariffs)
+      if (validTariffs[0].distance === "0 км") {
+        try {tg?.showAlert('Слишком маленькая дистанция или что-то пошло не так, попробуйте еще раз.', () => {});} 
+        catch {alert("Слишком маленькая дистанция или что-то пошло не так, попробуйте еще раз.");}
+        setShowTariff(false);
+        resetPoints();
+        return;  
       }
+    } else {
+
+      try {
+        tg?.showAlert('В данном городе нет доступных тарифов.', () => {});
+      } catch {
+        alert("В данном городе нет доступных тарифов.");
+      }
+
       setShowTariff(false);
       resetPoints();
       return;
