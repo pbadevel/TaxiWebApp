@@ -134,6 +134,7 @@ const initialCities: City[] = [
   { id: "5", name: "Ростов-на Дону", coords: [47.222, 39.7203], tariffs: [{tariffId: 3, name:"Эконом"}, {tariffId: 60, name:"Комфорт"}, {tariffId: 61, name:"Комфорт+"}]},
   { id: "4", name: "Санкт-Петербург", coords: [59.934280, 30.335098], tariffs: [{tariffId: 2, name:"Эконом"}, {tariffId: 58, name:"Комфорт"}, {tariffId: 59, name:"Комфорт+"}]}
 ];
+
 const citiesBounds: CityBounds[] = [
   { id: "53", bounds: [[44.75, 33.85], [45.15, 34.35]] }, // Симферополь
   { id: "52", bounds: [[55.80, 92.60], [56.30, 93.20]] }, // Красноярск
@@ -184,6 +185,22 @@ const citiesBounds: CityBounds[] = [
   { id: "6", bounds: [[54.85, 73.20], [55.15, 73.50]] }, // Омск
   { id: "5", bounds: [[47.10, 39.50], [47.35, 39.90]] }, // Ростов-на Дону
   { id: "4", bounds: [[59.70, 29.80], [60.15, 30.85]] }, // Санкт-Петербург
+  { id: "74", bounds: [[44.46, 37.975], [44.66, 38.175]] }, // Геленджик
+  { id: "73", bounds: [[45.091, 33.268], [45.291, 33.468]] }, // Евпатория
+  { id: "72", bounds: [[56.538, 47.791], [56.738, 47.991]] }, // Йошкар-Ола
+  { id: "71", bounds: [[61.576, 50.709], [61.776, 50.909]] }, // Сыктывкар
+  { id: "70", bounds: [[45.238, 36.368], [45.438, 36.568]] }, // Керчь
+  { id: "69", bounds: [[61.099, 72.503], [61.299, 72.703]] }, // Нефтеюганск
+  { id: "68", bounds: [[66.083, 76.533], [66.283, 76.733]] }, // Новый Уренгой
+  { id: "67", bounds: [[60.839, 76.469], [61.039, 76.669]] }, // Нижневартовск
+  { id: "66", bounds: [[43.697, 131.846], [43.897, 132.046]] }, // Уссурийск
+  { id: "65", bounds: [[56.900, 40.874], [57.100, 41.074]] }, // Иваново
+  { id: "64", bounds: [[61.154, 73.296], [61.354, 73.496]] }, // Сургут
+  { id: "63", bounds: [[66.430, 66.513], [66.630, 66.713]] }, // Салехард
+  { id: "62", bounds: [[52.870, 35.964], [53.070, 36.164]] }, // Орёл
+  { id: "61", bounds: [[68.870, 32.975], [69.070, 33.175]] }, // Мурманск
+  { id: "59", bounds: [[53.095, 50.001], [53.295, 50.201]] }, // Самара
+  { id: "58", bounds: [[44.894, 37.170], [45.094, 37.370]] }, // Витязево
 ];
 
 
@@ -193,7 +210,7 @@ const citiesBounds: CityBounds[] = [
 
 export default function CustomMapWrapper() {
   const [cities, setCities] = useState<City[]>(initialCities);
-   const [selectedCityId, setSelectedCityId] = useState<string>(initialCities.find(c => c.name === "Санкт-Петербург")?.id || '4')
+  const [selectedCityId, setSelectedCityId] = useState<string>(initialCities.find(c => c.name === "Санкт-Петербург")?.id || '4')
   // const [selectedCity, setSelectedCity] = useState<City>(initialCities.find(c => c.name === "Санкт-Петербург") || initialCities[0]);
   const [pointValid, setPointValid] = useState(true);
 
@@ -234,6 +251,7 @@ export default function CustomMapWrapper() {
         const apiData: ApiTariffsResponse = await response.json();
         const updatedCities = updateCitiesWithTariffs(initialCities, apiData);
         setCities(updatedCities);
+        console.log("Cities Updated Successfuly!")
       } catch (error) {
         console.error('Ошибка при обновлении тарифов:', error);
       }
