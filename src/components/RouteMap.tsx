@@ -69,7 +69,7 @@ const MapHandler = ({
       lat <= neLat &&
       lng >= swLon &&
       lng <= neLon
-    );
+    ) || step === 'end';
   };
 
 
