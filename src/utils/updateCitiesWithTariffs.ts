@@ -19,6 +19,7 @@ interface City {
 interface ApiTariff {
   id: string;
   title: string;
+  disabled: string
   // Добавьте другие поля из ответа API при необходимости
 }
 
@@ -72,7 +73,7 @@ export function updateCitiesWithTariffs(
     
     // Форматируем тарифы
     const newTariffs = unit.tarifs
-      .filter(tarif => tarif?.id && tarif?.title && tarif?.title!='ЭКОНОМ')
+      .filter(tarif => tarif?.id && tarif?.title && tarif.disabled != '1')
       .map(tarif => ({
         tariffId: parseInt(tarif.id),
         name: normalizeTariffName(tarif.title)

@@ -69,6 +69,7 @@ interface CityBounds {
 interface ApiTariff {
   id: string;
   title: string;
+  disabled: string
   // Добавьте другие поля из ответа API при необходимости
 }
 interface ApiUnit {
