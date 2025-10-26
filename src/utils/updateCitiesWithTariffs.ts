@@ -72,7 +72,7 @@ export function updateCitiesWithTariffs(
     
     // Форматируем тарифы
     const newTariffs = unit.tarifs
-      .filter(tarif => tarif?.id && tarif?.title)
+      .filter(tarif => tarif?.id && tarif?.title && tarif?.title!='ЭКОНОМ')
       .map(tarif => ({
         tariffId: parseInt(tarif.id),
         name: normalizeTariffName(tarif.title)
