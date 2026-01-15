@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 
 
 const nextConfig: NextConfig = {
-    basePath: '/TalkDrive/app',
-    assetPrefix: '/TalkDrive/app',
+    // basePath: '/TalkDrive/app',
+    // assetPrefix: '/TalkDrive/app',
     // trailingSlash: true,
     
  
